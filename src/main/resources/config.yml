@@ -1,0 +1,111 @@
+# PigRace — lounge pig-leash races for Paper 26.1.2+
+#
+# Players click a join item (or /pigrace join) to enter a lounge race.
+# Max 4 racers. Non-participants are intentionally allowed to interfere.
+# Finish paths rotate each round from configured path presets.
+
+max-players: 4
+min-players: 1
+
+# Lobby wait before auto-start once min-players is reached
+lobby-countdown-seconds: 15
+# Freeze at path starts before GO
+start-countdown-seconds: 3
+
+# How long a race may last before a timeout (seconds)
+race-timeout-seconds: 120
+
+# Player / pig scale while racing (1.0 = normal). Super small = ~0.25–0.4
+player-scale: 0.30
+pig-scale: 0.45
+
+# Leash snap distance — if pig gets too far, gently pull it back
+leash-max-distance: 8.0
+# Re-apply leash if something breaks it during the race
+re-leash-ticks: 20
+
+# Finish detection: player OR their pig inside the finish region counts
+finish-requires-pig: false
+finish-check-radius-fallback: 2.5
+
+teleport-on-end: true
+restore-inventory: false
+
+# ---------------------------------------------------------------------------
+# Join item — players right/left-click this to join the default arena
+# Admins: /pigraceadmin givejoinitem
+# ---------------------------------------------------------------------------
+join-item:
+  material: CARROT_ON_A_STICK
+  display-name: "&d&lPig Race"
+  lore:
+    - "&7Click to join the lounge pig race!"
+    - "&8Max 4 players"
+  custom-model-data: 0
+  item-model: ""
+  # Which arena this item joins (must exist in arenas.yml)
+  arena: lounge
+
+# Action bars
+action-bar-waiting: "&dPig Race &8| &f{count}/{max} &7waiting &8| &e{seconds}s"
+action-bar-countdown: "&dGet ready! &e{seconds}"
+action-bar-racing: "&dPig Race &8| &e{time}s &8| &fPath &b{path}"
+
+# ---------------------------------------------------------------------------
+# Leaderboard / stats — pluggable providers for a future website API
+# provider: none | local | http
+# none  = discard (default until you wire an API)
+# local = write race results to plugins/PigRace/stats.yml (dev / fallback)
+# http  = POST JSON to your API (enable when ready; fails soft if unreachable)
+# ---------------------------------------------------------------------------
+stats:
+  provider: none
+  local:
+    file: stats.yml
+  http:
+    enabled: false
+    # Your future website / club API endpoint
+    url: "https://api.example.com/v1/pigrace/results"
+    method: POST
+    # Bearer token or leave blank
+    auth-header: ""
+    # Extra headers as key: value
+    headers: {}
+    # Seconds before giving up on a request
+    timeout-seconds: 5
+    # Include full placement list in the payload
+    include-placements: true
+
+messages:
+  prefix: "&8[&dPig Race&8] &r"
+  no-permission: "&cYou don't have permission."
+  players-only: "&cOnly players can use this command."
+  arena-not-found: "&cArena &e{arena}&c was not found."
+  arena-not-ready: "&cArena &e{arena}&c needs a lobby, at least one path with spawns + finish."
+  arena-full: "&cThat race is full (&e{max}&c players)."
+  already-playing: "&cYou are already in a pig race."
+  not-playing: "&cYou are not in a pig race."
+  joined: "&aJoined &e{arena}&a! &7({count}/{max})"
+  left: "&eYou left the pig race."
+  lobby-start: "&aRace starting in &e{seconds}&a seconds!"
+  countdown: "&e{seconds}&a..."
+  go: "&a&lGO! &7Lead your pig to the finish!"
+  path-picked: "&7This round's path: &b{path}"
+  finished: "&a{player} finished in &e#{place}&a! (&e{time}s&a)"
+  win: "&a&l{player} wins the pig race!"
+  timeout: "&cTime's up! Nobody finished."
+  race-ended: "&eRace over."
+  force-stopped: "&aForce-stopped race in &e{arena}&a."
+  reloaded: "&aConfiguration reloaded."
+  arena-created: "&aCreated arena &e{arena}&a."
+  arena-deleted: "&aDeleted arena &e{arena}&a."
+  lobby-set: "&aSet lobby for &e{arena}&a."
+  exit-set: "&aSet exit for &e{arena}&a."
+  path-created: "&aCreated path &e{path}&a in &e{arena}&a."
+  path-deleted: "&aDeleted path &e{path}&a from &e{arena}&a."
+  spawn-added: "&aAdded spawn &e#{index}&a to path &e{path}&a (&e{arena}&a)."
+  finish-set: "&aSet finish corner &e{corner}&a for path &e{path}&a."
+  join-item-given: "&aGave you the Pig Race join item."
+  join-item-bound: "&aJoin item now points at arena &e{arena}&a."
+  pig-lost: "&cYour pig wandered off — a new one was leashed!"
+  interfere-hint: "&7Spectators can mess with the race. Watch your pig!"

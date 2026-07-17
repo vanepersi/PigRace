@@ -1,0 +1,25 @@
+name: PigRace
+version: '${version}'
+main: dev.genesi.pigrace.PigRacePlugin
+api-version: '26.1'
+authors: [Genesi]
+description: Lounge pig-leash races — tiny players, leashed pigs, rotating paths. Max 4.
+
+commands:
+  pigrace:
+    description: Join or leave a pig race.
+    usage: /pigrace <join|leave|info|help>
+    aliases: [pr, pigracing]
+  pigraceadmin:
+    description: Admin setup for pig race lounges and join items.
+    usage: /pigraceadmin <subcommand>
+    aliases: [pradmin, pra]
+    permission: pigrace.admin
+
+permissions:
+  pigrace.use:
+    description: Join and leave pig races.
+    default: true
+  pigrace.admin:
+    description: Manage arenas, paths, join items, and force control.
+    default: op

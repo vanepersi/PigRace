@@ -1,0 +1,12 @@
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+out/
+build/
+.gradle/
+*.class
+.DS_Store
+deploy.env
+*.log

@@ -1,0 +1,33 @@
+# PigRace arenas — edit via /pigraceadmin or by hand.
+# Example skeleton (created empty on first run):
+#
+# arenas:
+#   lounge:
+#     lobby:
+#       world: world
+#       x: 0.5
+#       y: 64.0
+#       z: 0.5
+#       yaw: 0.0
+#       pitch: 0.0
+#     exit:
+#       world: world
+#       x: 0.5
+#       y: 64.0
+#       z: 4.5
+#       yaw: 0.0
+#       pitch: 0.0
+#     paths:
+#       red:
+#         spawns:
+#           - {world: world, x: 10.5, y: 64.0, z: 10.5, yaw: 90.0, pitch: 0.0}
+#           - {world: world, x: 10.5, y: 64.0, z: 12.5, yaw: 90.0, pitch: 0.0}
+#         finish-a: {world: world, x: 30.0, y: 64.0, z: 8.0, yaw: 0.0, pitch: 0.0}
+#         finish-b: {world: world, x: 34.0, y: 66.0, z: 16.0, yaw: 0.0, pitch: 0.0}
+#       blue:
+#         spawns:
+#           - {world: world, x: -10.5, y: 64.0, z: 10.5, yaw: -90.0, pitch: 0.0}
+#         finish-a: {world: world, x: -34.0, y: 64.0, z: 8.0, yaw: 0.0, pitch: 0.0}
+#         finish-b: {world: world, x: -30.0, y: 66.0, z: 16.0, yaw: 0.0, pitch: 0.0}
+
+arenas: {}
