@@ -1,5 +1,6 @@
 package dev.genesi.baconbolt.model;
 
+import org.bukkit.Location;
 import org.bukkit.entity.Pig;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
@@ -179,6 +180,8 @@ public final class RaceSession {
         private Double previousScale;
         private boolean finished;
         private boolean animating;
+        /** Locked spawn pad during countdown — pig is held here until GO. */
+        private Location startSpawn;
 
         public Racer(UUID uuid, String name) {
             this.uuid = uuid;
@@ -223,6 +226,14 @@ public final class RaceSession {
 
         public void setAnimating(boolean animating) {
             this.animating = animating;
+        }
+
+        public Location getStartSpawn() {
+            return startSpawn == null ? null : startSpawn.clone();
+        }
+
+        public void setStartSpawn(Location startSpawn) {
+            this.startSpawn = startSpawn == null ? null : startSpawn.clone();
         }
     }
 

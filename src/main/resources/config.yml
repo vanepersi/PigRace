@@ -31,11 +31,11 @@ auto-remount: true
 # Pig drive — intentionally slow by default. SPEED/BOOST power-ups multiply this.
 pig-drive:
   # Base forward speed (keep low; power-ups make you fast)
-  speed: 0.18
+  speed: 0.12
   # No sprint boost unless you get a speed power-up
   sprint-multiplier: 1.0
-  reverse-speed: 0.10
-  jump-strength: 0.38
+  reverse-speed: 0.07
+  jump-strength: 0.36
   turn-with-look: true
   # Extra multipliers while the rider has these potion effects from item boxes
   speed-effect-multiplier: 1.55

@@ -217,7 +217,15 @@ public final class GameManager {
             pig.setSaddle(true);
         }
         if (player.getVehicle() != null) {
-            player.leaveVehicle();
+            if (player.getVehicle().getUniqueId().equals(pig.getUniqueId())) {
+                return;
+            }
+            allowDismount.add(player.getUniqueId());
+            try {
+                player.leaveVehicle();
+            } finally {
+                allowDismount.remove(player.getUniqueId());
+            }
         }
         pig.addPassenger(player);
     }
@@ -364,21 +372,64 @@ public final class GameManager {
                 continue;
             }
             Location spawn = spawns.get(Math.min(index, spawns.size() - 1));
-            teleportRacer(player, racer, spawn);
-            ensurePigReady(player, racer, spawn);
-            // Still no movement / no stick until GO
+            seatAtSpawn(player, racer, spawn);
             index++;
         }
+        // Remount + re-seat next tick so everyone is locked on pads for countdown
+        Bukkit.getScheduler().runTask(plugin, () -> lockRacersAtSpawns(session));
     }
 
-    private void teleportRacer(Player player, RaceSession.Racer racer, Location spawn) {
+    /**
+     * Put the player on their pig at the race pad. Uses allow-dismount so the
+     * anti-dismount listener does not fight the teleport.
+     */
+    private void seatAtSpawn(Player player, RaceSession.Racer racer, Location spawn) {
+        ensurePigReady(player, racer, spawn);
         Pig pig = racer.getPig();
-        if (pig != null && pig.isValid()) {
-            player.leaveVehicle();
+        if (pig == null || !pig.isValid()) {
+            return;
+        }
+        racer.setStartSpawn(spawn);
+        allowDismount.add(player.getUniqueId());
+        try {
+            if (player.getVehicle() != null) {
+                player.leaveVehicle();
+            }
             pig.teleport(spawn);
-            mountPlayer(player, pig);
-        } else {
-            player.teleport(spawn);
+            pig.setVelocity(new Vector(0, 0, 0));
+            pig.addPassenger(player);
+        } finally {
+            allowDismount.remove(player.getUniqueId());
+        }
+        // Guarantee mount after teleport settles
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (!player.isOnline() || !pig.isValid()) {
+                return;
+            }
+            if (player.getVehicle() == null || !player.getVehicle().getUniqueId().equals(pig.getUniqueId())) {
+                mountPlayer(player, pig);
+            }
+            Location pad = racer.getStartSpawn();
+            if (pad != null) {
+                pig.teleport(pad);
+                pig.setVelocity(new Vector(0, 0, 0));
+            }
+        });
+    }
+
+    private void lockRacersAtSpawns(RaceSession session) {
+        for (RaceSession.Racer racer : session.getRacers().values()) {
+            Player player = Bukkit.getPlayer(racer.getUuid());
+            Pig pig = racer.getPig();
+            Location pad = racer.getStartSpawn();
+            if (player == null || pig == null || !pig.isValid() || pad == null) {
+                continue;
+            }
+            if (player.getVehicle() == null || !player.getVehicle().getUniqueId().equals(pig.getUniqueId())) {
+                mountPlayer(player, pig);
+            }
+            pig.teleport(pad);
+            pig.setVelocity(new Vector(0, 0, 0));
         }
     }
 
@@ -395,6 +446,9 @@ public final class GameManager {
     }
 
     private void tickCountdown(RaceSession session) {
+        // Keep everyone mounted on their pad for the whole countdown
+        lockRacersAtSpawns(session);
+
         int left = session.getStartSecondsLeft() - 1;
         session.setStartSecondsLeft(left);
         if (left > 0) {
@@ -406,6 +460,9 @@ public final class GameManager {
     }
 
     private void startRacing(RaceSession session) {
+        // Final seat check — race begins mounted at spawn, then movement unlocks
+        lockRacersAtSpawns(session);
+
         session.setPhase(RaceSession.Phase.RACING);
         session.setRaceStartMillis(System.currentTimeMillis());
         session.setRaceSecondsLeft(plugin.getConfig().getInt("race-timeout-seconds", 180));
@@ -434,8 +491,8 @@ public final class GameManager {
             return;
         }
 
-        double baseSpeed = plugin.getConfig().getDouble("pig-drive.speed", 0.18);
-        double reverse = plugin.getConfig().getDouble("pig-drive.reverse-speed", 0.10);
+        double baseSpeed = plugin.getConfig().getDouble("pig-drive.speed", 0.12);
+        double reverse = plugin.getConfig().getDouble("pig-drive.reverse-speed", 0.07);
         double sprintMul = plugin.getConfig().getDouble("pig-drive.sprint-multiplier", 1.0);
         double jump = plugin.getConfig().getDouble("pig-drive.jump-strength", 0.38);
         boolean turnWithLook = plugin.getConfig().getBoolean("pig-drive.turn-with-look", true);
@@ -456,9 +513,18 @@ public final class GameManager {
                 continue;
             }
 
-            // Frozen in lobby wait + on the starting pads until GO
+            // Frozen in lobby wait + locked on starting pads until GO
             if (phase != RaceSession.Phase.RACING) {
-                pig.setVelocity(new Vector(0, Math.min(0, pig.getVelocity().getY()), 0));
+                pig.setVelocity(new Vector(0, 0, 0));
+                if (phase == RaceSession.Phase.COUNTDOWN) {
+                    Location pad = racer.getStartSpawn();
+                    if (pad != null && pig.getLocation().distanceSquared(pad) > 0.04) {
+                        pig.teleport(pad);
+                    }
+                    if (player.getVehicle() == null || !player.getVehicle().getUniqueId().equals(pig.getUniqueId())) {
+                        mountPlayer(player, pig);
+                    }
+                }
                 continue;
             }
 
@@ -795,6 +861,19 @@ public final class GameManager {
         if (points.size() < 2) {
             return;
         }
+
+        // Only racers see the path — not spectators / lounge bystanders
+        List<Player> viewers = new ArrayList<>();
+        for (UUID uuid : session.getRacers().keySet()) {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player != null && player.isOnline()) {
+                viewers.add(player);
+            }
+        }
+        if (viewers.isEmpty()) {
+            return;
+        }
+
         Particle particle = parseParticle(plugin.getConfig().getString("trail.particle", "END_ROD"), Particle.END_ROD);
         int density = Math.max(1, plugin.getConfig().getInt("trail.density", 4));
         for (int i = 0; i < points.size() - 1; i++) {
@@ -807,7 +886,9 @@ public final class GameManager {
             Location cursor = a.clone();
             for (int s = 0; s < density; s++) {
                 cursor.add(step);
-                a.getWorld().spawnParticle(particle, cursor, 1, 0.02, 0.02, 0.02, 0);
+                for (Player viewer : viewers) {
+                    viewer.spawnParticle(particle, cursor, 1, 0.02, 0.02, 0.02, 0);
+                }
             }
         }
     }
@@ -869,7 +950,12 @@ public final class GameManager {
         if (center == null || center.getWorld() == null) {
             return;
         }
-        center.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, center, 8, 0.8, 0.4, 0.8, 0.01);
+        for (UUID uuid : session.getRacers().keySet()) {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player != null) {
+                player.spawnParticle(Particle.HAPPY_VILLAGER, center, 8, 0.8, 0.4, 0.8, 0.01);
+            }
+        }
     }
 
     private void endRace(RaceSession session, String reason) {
