@@ -11,18 +11,20 @@ import dev.genesi.pigrace.stats.RaceResult;
 import dev.genesi.pigrace.util.ScaleUtil;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
+import org.bukkit.Input;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Pig;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -139,13 +141,7 @@ public final class GameManager {
         int duration = Math.max(10, plugin.getConfig().getInt("join-animation.duration-ticks", 30));
         Particle particle = parseParticle(plugin.getConfig().getString("join-animation.particle", "CLOUD"), Particle.CLOUD);
 
-        Pig pig = (Pig) at.getWorld().spawnEntity(at.clone().add(0.3, 0, 0.3), EntityType.PIG);
-        pig.setAdult();
-        pig.setAI(true);
-        pig.setAware(true);
-        pig.setInvulnerable(true);
-        pig.customName(LegacyComponentSerializer.legacyAmpersand().deserialize("&d" + player.getName() + "'s Pig"));
-        pig.setCustomNameVisible(true);
+        Pig pig = spawnRacePig(at.clone().add(0.3, 0, 0.3), player.getName());
         ScaleUtil.setScale(pig, 0.2);
         racer.setPig(pig);
 
@@ -176,9 +172,38 @@ public final class GameManager {
         }, 1L, 1L);
     }
 
+    private Pig spawnRacePig(Location at, String ownerName) {
+        Pig pig = (Pig) at.getWorld().spawnEntity(at, EntityType.PIG);
+        prepareRacePig(pig, ownerName);
+        return pig;
+    }
+
+    /**
+     * Saddle + disable AI. Vanilla carrot-stick steering breaks when the rider is scaled,
+     * so we drive pigs ourselves from player WASD input.
+     */
+    private void prepareRacePig(Pig pig, String ownerName) {
+        pig.setAdult();
+        pig.setAI(false);
+        pig.setAware(true);
+        pig.setInvulnerable(true);
+        pig.setCollidable(true);
+        pig.setSaddle(true);
+        pig.customName(LegacyComponentSerializer.legacyAmpersand().deserialize("&d" + ownerName + "'s Pig"));
+        pig.setCustomNameVisible(true);
+        AttributeInstance speed = pig.getAttribute(Attribute.MOVEMENT_SPEED);
+        if (speed != null) {
+            speed.setBaseValue(0.35);
+        }
+        ScaleUtil.setScale(pig, plugin.getConfig().getDouble("pig-scale", 0.55));
+    }
+
     private void mountPlayer(Player player, Pig pig) {
         if (pig == null || !pig.isValid()) {
             return;
+        }
+        if (!pig.hasSaddle()) {
+            pig.setSaddle(true);
         }
         if (player.getVehicle() != null) {
             player.leaveVehicle();
@@ -276,6 +301,7 @@ public final class GameManager {
             }
         }
         maintainMounts(session);
+        drivePigs(session);
     }
 
     private void tickWaiting(RaceSession session, Arena arena) {
@@ -319,7 +345,6 @@ public final class GameManager {
             teleportRacer(player, racer, spawn);
             ensurePigReady(player, racer, spawn);
             giveSteerItem(player);
-            player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 20 * 10, 10, false, false, false));
             index++;
         }
     }
@@ -338,15 +363,12 @@ public final class GameManager {
     private void ensurePigReady(Player player, RaceSession.Racer racer, Location spawn) {
         Pig pig = racer.getPig();
         if (pig == null || !pig.isValid()) {
-            pig = (Pig) spawn.getWorld().spawnEntity(spawn, EntityType.PIG);
-            pig.setAdult();
-            pig.setInvulnerable(true);
-            pig.customName(LegacyComponentSerializer.legacyAmpersand().deserialize("&d" + player.getName() + "'s Pig"));
-            pig.setCustomNameVisible(true);
-            ScaleUtil.setScale(pig, plugin.getConfig().getDouble("pig-scale", 0.55));
+            pig = spawnRacePig(spawn, player.getName());
             ScaleUtil.setScale(player, plugin.getConfig().getDouble("player-scale", 0.28));
             racer.setPig(pig);
             mountPlayer(player, pig);
+        } else {
+            prepareRacePig(pig, player.getName());
         }
     }
 
@@ -372,9 +394,106 @@ public final class GameManager {
         for (UUID uuid : session.getRacers().keySet()) {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null) {
-                player.removePotionEffect(PotionEffectType.SLOWNESS);
                 scoreboards.showRaceHud(player, pathName, session.getRaceSecondsLeft());
             }
+        }
+    }
+
+    /**
+     * Drive mounted pigs from the rider's WASD input.
+     * Independent of Attribute.SCALE so tiny players still move.
+     */
+    private void drivePigs(RaceSession session) {
+        RaceSession.Phase phase = session.getPhase();
+        if (phase != RaceSession.Phase.WAITING && phase != RaceSession.Phase.RACING && phase != RaceSession.Phase.COUNTDOWN) {
+            return;
+        }
+
+        double speed = plugin.getConfig().getDouble("pig-drive.speed", 0.42);
+        double reverse = plugin.getConfig().getDouble("pig-drive.reverse-speed", 0.22);
+        double sprintMul = plugin.getConfig().getDouble("pig-drive.sprint-multiplier", 1.35);
+        double jump = plugin.getConfig().getDouble("pig-drive.jump-strength", 0.48);
+        boolean turnWithLook = plugin.getConfig().getBoolean("pig-drive.turn-with-look", true);
+
+        for (RaceSession.Racer racer : session.getRacers().values()) {
+            if (racer.isFinished() || racer.isAnimating()) {
+                continue;
+            }
+            Player player = Bukkit.getPlayer(racer.getUuid());
+            Pig pig = racer.getPig();
+            if (player == null || pig == null || !pig.isValid()) {
+                continue;
+            }
+            if (player.getVehicle() == null || !player.getVehicle().getUniqueId().equals(pig.getUniqueId())) {
+                continue;
+            }
+
+            // Freeze on the starting line during countdown
+            if (phase == RaceSession.Phase.COUNTDOWN) {
+                pig.setVelocity(new Vector(0, Math.min(0, pig.getVelocity().getY()), 0));
+                continue;
+            }
+
+            Input input = player.getCurrentInput();
+            float yaw = player.getLocation().getYaw();
+            if (turnWithLook) {
+                pig.setRotation(yaw, 0f);
+            }
+
+            Vector velocity = pig.getVelocity();
+            double y = velocity.getY();
+            Vector move = new Vector();
+
+            if (input.isForward()) {
+                Location facing = pig.getLocation().clone();
+                facing.setYaw(yaw);
+                facing.setPitch(0f);
+                move = facing.getDirection().setY(0);
+                if (move.lengthSquared() > 0.0001) {
+                    move.normalize().multiply(input.isSprint() ? speed * sprintMul : speed);
+                }
+            } else if (input.isBackward()) {
+                Location facing = pig.getLocation().clone();
+                facing.setYaw(yaw);
+                facing.setPitch(0f);
+                move = facing.getDirection().setY(0);
+                if (move.lengthSquared() > 0.0001) {
+                    move.normalize().multiply(-reverse);
+                }
+            }
+
+            // Slight strafe with A/D
+            if (input.isLeft() || input.isRight()) {
+                Location facing = pig.getLocation().clone();
+                facing.setYaw(yaw + (input.isLeft() ? -90f : 90f));
+                facing.setPitch(0f);
+                Vector strafe = facing.getDirection().setY(0);
+                if (strafe.lengthSquared() > 0.0001) {
+                    strafe.normalize().multiply(speed * 0.55);
+                    move.add(strafe);
+                }
+            }
+
+            if (move.lengthSquared() > 0.0001) {
+                // Cap horizontal speed so strafe+forward doesn't go wild
+                Vector horizontal = new Vector(move.getX(), 0, move.getZ());
+                double max = speed * sprintMul;
+                if (horizontal.length() > max) {
+                    horizontal.normalize().multiply(max);
+                }
+                velocity.setX(horizontal.getX());
+                velocity.setZ(horizontal.getZ());
+            } else {
+                // Friction when no input
+                velocity.setX(velocity.getX() * 0.6);
+                velocity.setZ(velocity.getZ() * 0.6);
+            }
+
+            if (input.isJump() && pig.isOnGround()) {
+                y = jump;
+            }
+            velocity.setY(y);
+            pig.setVelocity(velocity);
         }
     }
 
@@ -796,7 +915,6 @@ public final class GameManager {
         if (player != null) {
             scoreboards.clear(player);
             player.leaveVehicle();
-            player.removePotionEffect(PotionEffectType.SLOWNESS);
             clearSteerItems(player);
             if (racer != null && racer.getPreviousScale() != null) {
                 ScaleUtil.setScale(player, racer.getPreviousScale());

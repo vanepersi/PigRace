@@ -22,10 +22,24 @@ join-animation:
   particle: CLOUD
   sound: ENTITY_PLAYER_LEVELUP
 
-# Players ride pigs (carrot on a stick steers). Leash mode is unused in ride mode.
+# Players ride pigs. Movement is driven by plugin code from WASD input so
+# tiny player scale cannot break steering (vanilla carrot-stick often fails when scaled).
 ride-pigs: true
 # Keep remounting if they fall off mid-race
 auto-remount: true
+
+# Pig drive (blocks per tick-ish via velocity). Works at any player/pig scale.
+pig-drive:
+  # Forward speed while holding W
+  speed: 0.42
+  # Sprint multiplier (Ctrl)
+  sprint-multiplier: 1.35
+  # Backward speed
+  reverse-speed: 0.22
+  # Jump strength when on ground + space
+  jump-strength: 0.48
+  # Face the player's look yaw every tick
+  turn-with-look: true
 
 finish-requires-pig: false
 finish-check-radius-fallback: 2.5
@@ -50,7 +64,8 @@ steer-item:
   material: CARROT_ON_A_STICK
   display-name: "&d&lPig Stick"
   lore:
-    - "&7Hold to steer your pig!"
+    - "&7WASD to drive your pig!"
+    - "&7Space to jump"
 
 # Trail particles along path waypoints
 trail:
