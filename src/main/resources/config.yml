@@ -1,79 +1,135 @@
-# PigRace — lounge pig-leash races for Paper 26.1.2+
+# PigRace — lounge pig races for Paper 26.1.2+
 #
-# Players click a join item (or /pigrace join) to enter a lounge race.
-# Max 4 racers. Non-participants are intentionally allowed to interfere.
-# Finish paths rotate each round from configured path presets.
+# Eat a join carrot → shrink animation + sit on a pig.
+# Race starts once 2+ players join. Follow the lounge trail.
+# Mario Kart–style rotating power-up blocks spin an effect on your scoreboard.
 
 max-players: 4
-min-players: 1
+min-players: 2
 
-# Lobby wait before auto-start once min-players is reached
-lobby-countdown-seconds: 15
-# Freeze at path starts before GO
+# Lobby wait once min-players is reached (short — race can begin quickly)
+lobby-countdown-seconds: 8
 start-countdown-seconds: 3
+race-timeout-seconds: 180
 
-# How long a race may last before a timeout (seconds)
-race-timeout-seconds: 120
+# Final scale after the shrink animation (1.0 = normal)
+player-scale: 0.28
+pig-scale: 0.55
 
-# Player / pig scale while racing (1.0 = normal). Super small = ~0.25–0.4
-player-scale: 0.30
-pig-scale: 0.45
+# Shrink-onto-pig join animation
+join-animation:
+  duration-ticks: 30
+  particle: CLOUD
+  sound: ENTITY_PLAYER_LEVELUP
 
-# Leash snap distance — if pig gets too far, gently pull it back
-leash-max-distance: 8.0
-# Re-apply leash if something breaks it during the race
-re-leash-ticks: 20
+# Players ride pigs (carrot on a stick steers). Leash mode is unused in ride mode.
+ride-pigs: true
+# Keep remounting if they fall off mid-race
+auto-remount: true
 
-# Finish detection: player OR their pig inside the finish region counts
 finish-requires-pig: false
 finish-check-radius-fallback: 2.5
-
 teleport-on-end: true
-restore-inventory: false
 
 # ---------------------------------------------------------------------------
-# Join item — players right/left-click this to join the default arena
+# Join carrot — EAT this to join (not click)
 # Admins: /pigraceadmin givejoinitem
 # ---------------------------------------------------------------------------
 join-item:
-  material: CARROT_ON_A_STICK
-  display-name: "&d&lPig Race"
+  material: CARROT
+  display-name: "&6&lPig Race Carrot"
   lore:
-    - "&7Click to join the lounge pig race!"
-    - "&8Max 4 players"
+    - "&7Eat to join the lounge pig race!"
+    - "&8Needs 2 players to start"
   custom-model-data: 0
   item-model: ""
-  # Which arena this item joins (must exist in arenas.yml)
   arena: lounge
 
-# Action bars
+# Carrot on a stick given while racing (steers the pig)
+steer-item:
+  material: CARROT_ON_A_STICK
+  display-name: "&d&lPig Stick"
+  lore:
+    - "&7Hold to steer your pig!"
+
+# Trail particles along path waypoints
+trail:
+  enabled: true
+  particle: END_ROD
+  density: 4
+  y-offset: 0.35
+
+# ---------------------------------------------------------------------------
+# Mario Kart–style power-up boxes
+# ---------------------------------------------------------------------------
+powerups:
+  enabled: true
+  # Rotating display block
+  material: GOLD_BLOCK
+  display-scale: 0.55
+  rotate-degrees-per-tick: 6
+  bob-amplitude: 0.12
+  collect-radius: 1.35
+  # Seconds before a collected box respawns
+  respawn-seconds: 8
+  # Scoreboard roulette
+  spin:
+    duration-ticks: 40
+    tick-interval: 2
+    title: "&6&lITEM BOX"
+  effects:
+    speed:
+      display: "&a&lSPEED"
+      weight: 25
+      potion: SPEED
+      amplifier: 1
+      duration-ticks: 100
+    blindness:
+      display: "&8&lBLINDNESS"
+      weight: 15
+      potion: BLINDNESS
+      amplifier: 0
+      duration-ticks: 60
+    slowness:
+      display: "&9&lSLOW"
+      weight: 15
+      potion: SLOWNESS
+      amplifier: 1
+      duration-ticks: 80
+    jump:
+      display: "&e&lJUMP"
+      weight: 15
+      potion: JUMP_BOOST
+      amplifier: 2
+      duration-ticks: 80
+    boost:
+      display: "&b&lBOOST"
+      weight: 20
+      potion: SPEED
+      amplifier: 3
+      duration-ticks: 40
+    nausea:
+      display: "&2&lDIZZY"
+      weight: 10
+      potion: NAUSEA
+      amplifier: 0
+      duration-ticks: 100
+
 action-bar-waiting: "&dPig Race &8| &f{count}/{max} &7waiting &8| &e{seconds}s"
 action-bar-countdown: "&dGet ready! &e{seconds}"
 action-bar-racing: "&dPig Race &8| &e{time}s &8| &fPath &b{path}"
 
-# ---------------------------------------------------------------------------
-# Leaderboard / stats — pluggable providers for a future website API
-# provider: none | local | http
-# none  = discard (default until you wire an API)
-# local = write race results to plugins/PigRace/stats.yml (dev / fallback)
-# http  = POST JSON to your API (enable when ready; fails soft if unreachable)
-# ---------------------------------------------------------------------------
 stats:
   provider: none
   local:
     file: stats.yml
   http:
     enabled: false
-    # Your future website / club API endpoint
     url: "https://api.example.com/v1/pigrace/results"
     method: POST
-    # Bearer token or leave blank
     auth-header: ""
-    # Extra headers as key: value
     headers: {}
-    # Seconds before giving up on a request
     timeout-seconds: 5
-    # Include full placement list in the payload
     include-placements: true
 
 messages:
@@ -85,11 +141,13 @@ messages:
   arena-full: "&cThat race is full (&e{max}&c players)."
   already-playing: "&cYou are already in a pig race."
   not-playing: "&cYou are not in a pig race."
-  joined: "&aJoined &e{arena}&a! &7({count}/{max})"
+  joined: "&aJoined &e{arena}&a! &7({count}/{max}) &8— eat a carrot to join!"
+  joining-anim: "&dShrinking... hop on!"
+  need-more-players: "&eWaiting for &f{needed}&e more player(s) to start..."
   left: "&eYou left the pig race."
   lobby-start: "&aRace starting in &e{seconds}&a seconds!"
   countdown: "&e{seconds}&a..."
-  go: "&a&lGO! &7Lead your pig to the finish!"
+  go: "&a&lGO! &7Follow the trail — grab the glowing boxes!"
   path-picked: "&7This round's path: &b{path}"
   finished: "&a{player} finished in &e#{place}&a! (&e{time}s&a)"
   win: "&a&l{player} wins the pig race!"
@@ -105,7 +163,10 @@ messages:
   path-deleted: "&aDeleted path &e{path}&a from &e{arena}&a."
   spawn-added: "&aAdded spawn &e#{index}&a to path &e{path}&a (&e{arena}&a)."
   finish-set: "&aSet finish corner &e{corner}&a for path &e{path}&a."
-  join-item-given: "&aGave you the Pig Race join item."
-  join-item-bound: "&aJoin item now points at arena &e{arena}&a."
-  pig-lost: "&cYour pig wandered off — a new one was leashed!"
-  interfere-hint: "&7Spectators can mess with the race. Watch your pig!"
+  trail-added: "&aAdded trail waypoint &e#{index}&a to &e{path}&a."
+  powerup-added: "&aAdded power-up box &e#{index}&a to &e{path}&a."
+  join-item-given: "&aGave you the Pig Race join carrot — eat it to join!"
+  join-item-bound: "&aJoin carrot now points at arena &e{arena}&a."
+  pig-lost: "&cYour pig vanished — a new one appeared!"
+  powerup-got: "&6Item! &r{effect}"
+  interfere-hint: "&7Others can interfere — hold your carrot stick and race!"

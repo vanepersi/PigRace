@@ -6,6 +6,7 @@ import dev.genesi.pigrace.listener.RaceListener;
 import dev.genesi.pigrace.manager.ArenaManager;
 import dev.genesi.pigrace.manager.GameManager;
 import dev.genesi.pigrace.manager.MessageService;
+import dev.genesi.pigrace.powerup.PowerUpRegistry;
 import dev.genesi.pigrace.stats.StatsService;
 import dev.genesi.pigrace.util.ItemFactory;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -17,6 +18,7 @@ public final class PigRacePlugin extends JavaPlugin {
     private MessageService messageService;
     private ItemFactory itemFactory;
     private StatsService statsService;
+    private PowerUpRegistry powerUpRegistry;
 
     @Override
     public void onEnable() {
@@ -25,6 +27,7 @@ public final class PigRacePlugin extends JavaPlugin {
         this.messageService = new MessageService(this);
         this.itemFactory = new ItemFactory(this);
         this.statsService = new StatsService(this);
+        this.powerUpRegistry = new PowerUpRegistry(this);
         this.arenaManager = new ArenaManager(this);
         this.gameManager = new GameManager(this);
 
@@ -39,7 +42,8 @@ public final class PigRacePlugin extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new RaceListener(this), this);
 
-        getLogger().info("PigRace enabled — stats provider: " + statsService.provider().id());
+        getLogger().info("PigRace enabled — stats: " + statsService.provider().id()
+                + ", power-ups: " + powerUpRegistry.all().size());
     }
 
     @Override
@@ -56,6 +60,7 @@ public final class PigRacePlugin extends JavaPlugin {
         reloadConfig();
         messageService.reload();
         statsService.reload();
+        powerUpRegistry.reload();
         arenaManager.load();
     }
 
@@ -77,5 +82,9 @@ public final class PigRacePlugin extends JavaPlugin {
 
     public StatsService getStatsService() {
         return statsService;
+    }
+
+    public PowerUpRegistry getPowerUpRegistry() {
+        return powerUpRegistry;
     }
 }

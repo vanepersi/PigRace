@@ -3,7 +3,7 @@ version: '${version}'
 main: dev.genesi.pigrace.PigRacePlugin
 api-version: '26.1'
 authors: [Genesi]
-description: Lounge pig-leash races — tiny players, leashed pigs, rotating paths. Max 4.
+description: Lounge pig races — eat a carrot, shrink onto a pig, trail + Mario Kart boxes. Max 4.
 
 commands:
   pigrace:

@@ -162,7 +162,49 @@ public final class PigRaceAdminCommand implements CommandExecutor, TabCompleter 
                 plugin.getArenaManager().save();
                 plugin.getMessageService().send(player, "finish-set", Map.of("corner", corner, "path", path.getName()));
             }
-            case "givejoinitem" -> {
+            case "addtrail" -> {
+                Player player = requirePlayer(sender);
+                if (player == null) {
+                    return true;
+                }
+                if (args.length < 3) {
+                    sender.sendMessage("Usage: /pigraceadmin addtrail <arena> <path>");
+                    return true;
+                }
+                Arena arena = requireArena(sender, args, 1);
+                if (arena == null) {
+                    return true;
+                }
+                RacePath path = arena.getOrCreatePath(args[2]);
+                int index = path.addTrail(player.getLocation());
+                plugin.getArenaManager().save();
+                plugin.getMessageService().send(player, "trail-added", Map.of(
+                        "index", String.valueOf(index),
+                        "path", path.getName()
+                ));
+            }
+            case "addpowerup" -> {
+                Player player = requirePlayer(sender);
+                if (player == null) {
+                    return true;
+                }
+                if (args.length < 3) {
+                    sender.sendMessage("Usage: /pigraceadmin addpowerup <arena> <path>");
+                    return true;
+                }
+                Arena arena = requireArena(sender, args, 1);
+                if (arena == null) {
+                    return true;
+                }
+                RacePath path = arena.getOrCreatePath(args[2]);
+                int index = path.addPowerUp(player.getLocation());
+                plugin.getArenaManager().save();
+                plugin.getMessageService().send(player, "powerup-added", Map.of(
+                        "index", String.valueOf(index),
+                        "path", path.getName()
+                ));
+            }
+            case "givejoinitem", "givecarrot" -> {
                 Player player = requirePlayer(sender);
                 if (player == null) {
                     return true;
@@ -232,8 +274,10 @@ public final class PigRaceAdminCommand implements CommandExecutor, TabCompleter 
         plugin.getMessageService().sendRaw(sender, "&e/pigraceadmin setlobby|setexit <arena>");
         plugin.getMessageService().sendRaw(sender, "&e/pigraceadmin createpath|deletepath <arena> <path>");
         plugin.getMessageService().sendRaw(sender, "&e/pigraceadmin addspawn <arena> <path>");
+        plugin.getMessageService().sendRaw(sender, "&e/pigraceadmin addtrail <arena> <path> &7- lounge trail points");
+        plugin.getMessageService().sendRaw(sender, "&e/pigraceadmin addpowerup <arena> <path> &7- Mario Kart boxes");
         plugin.getMessageService().sendRaw(sender, "&e/pigraceadmin setfinish <arena> <path> <a|b>");
-        plugin.getMessageService().sendRaw(sender, "&e/pigraceadmin givejoinitem | setjoinarena <arena>");
+        plugin.getMessageService().sendRaw(sender, "&e/pigraceadmin givecarrot | setjoinarena <arena>");
         plugin.getMessageService().sendRaw(sender, "&e/pigraceadmin forcestop <arena> | list | stats | reload");
     }
 
@@ -266,20 +310,20 @@ public final class PigRaceAdminCommand implements CommandExecutor, TabCompleter 
         if (args.length == 1) {
             return filter(List.of(
                     "create", "delete", "setlobby", "setexit", "createpath", "deletepath",
-                    "addspawn", "setfinish", "givejoinitem", "setjoinarena", "forcestop",
-                    "reload", "list", "stats"
+                    "addspawn", "addtrail", "addpowerup", "setfinish", "givejoinitem", "givecarrot",
+                    "setjoinarena", "forcestop", "reload", "list", "stats"
             ), args[0]);
         }
         if (args.length == 2) {
             String sub = args[0].toLowerCase(Locale.ROOT);
             if (List.of("delete", "setlobby", "setexit", "createpath", "deletepath", "addspawn",
-                    "setfinish", "setjoinarena", "forcestop").contains(sub)) {
+                    "addtrail", "addpowerup", "setfinish", "setjoinarena", "forcestop").contains(sub)) {
                 return filter(plugin.getArenaManager().all().stream().map(Arena::getName).collect(Collectors.toList()), args[1]);
             }
         }
         if (args.length == 3) {
             String sub = args[0].toLowerCase(Locale.ROOT);
-            if (List.of("deletepath", "addspawn", "setfinish", "createpath").contains(sub)) {
+            if (List.of("deletepath", "addspawn", "addtrail", "addpowerup", "setfinish", "createpath").contains(sub)) {
                 return plugin.getArenaManager().get(args[1])
                         .map(a -> filter(a.getPaths().stream().map(RacePath::getName).collect(Collectors.toList()), args[2]))
                         .orElse(List.of());

@@ -28,7 +28,10 @@ public final class RaceSession {
     private int startSecondsLeft;
     private int raceSecondsLeft;
     private BukkitTask tickTask;
+    private BukkitTask fastTask;
     private final List<Placement> placements = new ArrayList<>();
+    private final List<dev.genesi.pigrace.powerup.PowerUpBox> activeBoxes = new ArrayList<>();
+    private final Map<UUID, Boolean> spinning = new LinkedHashMap<>();
 
     public RaceSession(String arenaName) {
         this.arenaName = arenaName.toLowerCase();
@@ -69,6 +72,7 @@ public final class RaceSession {
     }
 
     public boolean removeRacer(UUID uuid) {
+        spinning.remove(uuid);
         return racers.remove(uuid) != null;
     }
 
@@ -116,6 +120,14 @@ public final class RaceSession {
         this.tickTask = tickTask;
     }
 
+    public BukkitTask getFastTask() {
+        return fastTask;
+    }
+
+    public void setFastTask(BukkitTask fastTask) {
+        this.fastTask = fastTask;
+    }
+
     public List<Placement> getPlacements() {
         return placements;
     }
@@ -133,10 +145,30 @@ public final class RaceSession {
         return false;
     }
 
+    public List<dev.genesi.pigrace.powerup.PowerUpBox> getActiveBoxes() {
+        return activeBoxes;
+    }
+
+    public boolean isSpinning(UUID uuid) {
+        return Boolean.TRUE.equals(spinning.get(uuid));
+    }
+
+    public void setSpinning(UUID uuid, boolean value) {
+        if (value) {
+            spinning.put(uuid, true);
+        } else {
+            spinning.remove(uuid);
+        }
+    }
+
     public void cancelTask() {
         if (tickTask != null) {
             tickTask.cancel();
             tickTask = null;
+        }
+        if (fastTask != null) {
+            fastTask.cancel();
+            fastTask = null;
         }
     }
 
@@ -146,6 +178,7 @@ public final class RaceSession {
         private Pig pig;
         private Double previousScale;
         private boolean finished;
+        private boolean animating;
 
         public Racer(UUID uuid, String name) {
             this.uuid = uuid;
@@ -182,6 +215,14 @@ public final class RaceSession {
 
         public void setFinished(boolean finished) {
             this.finished = finished;
+        }
+
+        public boolean isAnimating() {
+            return animating;
+        }
+
+        public void setAnimating(boolean animating) {
+            this.animating = animating;
         }
     }
 

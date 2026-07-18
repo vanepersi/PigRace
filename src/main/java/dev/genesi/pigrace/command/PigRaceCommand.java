@@ -75,7 +75,7 @@ public final class PigRaceCommand implements CommandExecutor, TabCompleter {
         plugin.getMessageService().sendRaw(player, "&e/pigrace join [arena] &7- join a lounge race");
         plugin.getMessageService().sendRaw(player, "&e/pigrace leave &7- leave the race");
         plugin.getMessageService().sendRaw(player, "&e/pigrace info &7- current race status");
-        plugin.getMessageService().sendRaw(player, "&7Or click the Pig Race join item!");
+        plugin.getMessageService().sendRaw(player, "&7Or &eeat&7 a Pig Race carrot to join!");
     }
 
     @Override

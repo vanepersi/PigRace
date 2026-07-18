@@ -15,6 +15,7 @@ import java.util.List;
 public final class ItemFactory {
 
     public static final String JOIN_ITEM_KEY = "join_item";
+    public static final String STEER_ITEM_KEY = "steer_item";
 
     private final JavaPlugin plugin;
     private final NamespacedKey markerKey;
@@ -28,24 +29,51 @@ public final class ItemFactory {
 
     public ItemStack createJoinItem() {
         ConfigurationSection section = plugin.getConfig().getConfigurationSection("join-item");
-        Material material = Material.CARROT_ON_A_STICK;
-        String display = "&d&lPig Race";
-        List<String> lore = List.of("&7Click to join the lounge pig race!");
+        Material material = Material.CARROT;
+        String display = "&6&lPig Race Carrot";
+        List<String> lore = List.of("&7Eat to join the lounge pig race!");
         int cmd = 0;
         String itemModel = "";
         String arena = "lounge";
         if (section != null) {
-            material = Material.matchMaterial(section.getString("material", "CARROT_ON_A_STICK"));
-            if (material == null) {
-                material = Material.CARROT_ON_A_STICK;
-            }
+            Material matched = Material.matchMaterial(section.getString("material", "CARROT"));
+            material = matched == null ? Material.CARROT : matched;
             display = section.getString("display-name", display);
             lore = section.getStringList("lore");
             cmd = section.getInt("custom-model-data", 0);
             itemModel = section.getString("item-model", "");
             arena = section.getString("arena", "lounge");
         }
+        return buildMarked(material, display, lore, cmd, itemModel, JOIN_ITEM_KEY, arena);
+    }
 
+    public ItemStack createSteerItem() {
+        ConfigurationSection section = plugin.getConfig().getConfigurationSection("steer-item");
+        Material material = Material.CARROT_ON_A_STICK;
+        String display = "&d&lPig Stick";
+        List<String> lore = List.of("&7Hold to steer your pig!");
+        int cmd = 0;
+        String itemModel = "";
+        if (section != null) {
+            Material matched = Material.matchMaterial(section.getString("material", "CARROT_ON_A_STICK"));
+            material = matched == null ? Material.CARROT_ON_A_STICK : matched;
+            display = section.getString("display-name", display);
+            lore = section.getStringList("lore");
+            cmd = section.getInt("custom-model-data", 0);
+            itemModel = section.getString("item-model", "");
+        }
+        return buildMarked(material, display, lore, cmd, itemModel, STEER_ITEM_KEY, null);
+    }
+
+    private ItemStack buildMarked(
+            Material material,
+            String display,
+            List<String> lore,
+            int cmd,
+            String itemModel,
+            String marker,
+            String arena
+    ) {
         ItemStack stack = new ItemStack(material);
         ItemMeta meta = stack.getItemMeta();
         meta.displayName(LegacyComponentSerializer.legacyAmpersand().deserialize(display));
@@ -66,21 +94,30 @@ public final class ItemFactory {
                     meta.setItemModel(modelKey);
                 }
             } catch (NoSuchMethodError ignored) {
-                // Older API without item model — CMD still works
             }
         }
-        meta.getPersistentDataContainer().set(markerKey, PersistentDataType.STRING, JOIN_ITEM_KEY);
-        meta.getPersistentDataContainer().set(arenaKey, PersistentDataType.STRING, arena == null ? "lounge" : arena.toLowerCase());
+        meta.getPersistentDataContainer().set(markerKey, PersistentDataType.STRING, marker);
+        if (arena != null) {
+            meta.getPersistentDataContainer().set(arenaKey, PersistentDataType.STRING, arena.toLowerCase());
+        }
         stack.setItemMeta(meta);
         return stack;
     }
 
     public boolean isJoinItem(ItemStack stack) {
+        return hasMarker(stack, JOIN_ITEM_KEY);
+    }
+
+    public boolean isSteerItem(ItemStack stack) {
+        return hasMarker(stack, STEER_ITEM_KEY);
+    }
+
+    private boolean hasMarker(ItemStack stack, String expected) {
         if (stack == null || !stack.hasItemMeta()) {
             return false;
         }
         String value = stack.getItemMeta().getPersistentDataContainer().get(markerKey, PersistentDataType.STRING);
-        return JOIN_ITEM_KEY.equals(value);
+        return expected.equals(value);
     }
 
     public String getJoinArena(ItemStack stack) {
@@ -92,9 +129,5 @@ public final class ItemFactory {
             return plugin.getConfig().getString("join-item.arena", "lounge");
         }
         return arena.toLowerCase();
-    }
-
-    public NamespacedKey getMarkerKey() {
-        return markerKey;
     }
 }
