@@ -1,4 +1,4 @@
-package dev.genesi.pigrace.util;
+package dev.genesi.baconbolt.util;
 
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Material;
@@ -24,14 +24,14 @@ public final class ItemFactory {
 
     public ItemFactory(JavaPlugin plugin) {
         this.plugin = plugin;
-        this.markerKey = new NamespacedKey(plugin, "pigrace");
+        this.markerKey = new NamespacedKey(plugin, "baconbolt");
         this.arenaKey = new NamespacedKey(plugin, "arena");
     }
 
     public ItemStack createJoinItem() {
         ConfigurationSection section = plugin.getConfig().getConfigurationSection("join-item");
         Material material = Material.CARROT;
-        String display = "&6&lPig Race Carrot";
+        String display = "&6&lBacon Bolt Carrot";
         List<String> lore = List.of("&7Eat to join the lounge pig race!");
         int cmd = 0;
         String itemModel = "";
@@ -117,7 +117,7 @@ public final class ItemFactory {
         return isJoinItem(stack) || isSteerItem(stack);
     }
 
-    /** Remove every PigRace join/steer item from the player (inventory + cursor + offhand). */
+    /** Remove every BaconBolt join/steer item from the player (inventory + cursor + offhand). */
     public void clearRaceItems(Player player) {
         clearMatching(player, true, true);
     }

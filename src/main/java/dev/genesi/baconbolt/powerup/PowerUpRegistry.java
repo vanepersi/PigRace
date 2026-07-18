@@ -1,6 +1,6 @@
-package dev.genesi.pigrace.powerup;
+package dev.genesi.baconbolt.powerup;
 
-import dev.genesi.pigrace.PigRacePlugin;
+import dev.genesi.baconbolt.BaconBoltPlugin;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.potion.PotionEffectType;
@@ -13,10 +13,10 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public final class PowerUpRegistry {
 
-    private final PigRacePlugin plugin;
+    private final BaconBoltPlugin plugin;
     private final List<PowerUpEffect> effects = new ArrayList<>();
 
-    public PowerUpRegistry(PigRacePlugin plugin) {
+    public PowerUpRegistry(BaconBoltPlugin plugin) {
         this.plugin = plugin;
         reload();
     }

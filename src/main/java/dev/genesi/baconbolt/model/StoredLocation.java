@@ -1,4 +1,4 @@
-package dev.genesi.pigrace.model;
+package dev.genesi.baconbolt.model;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;

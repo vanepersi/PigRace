@@ -1,4 +1,4 @@
-package dev.genesi.pigrace.stats;
+package dev.genesi.baconbolt.stats;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;

@@ -1,4 +1,4 @@
-package dev.genesi.pigrace.stats;
+package dev.genesi.baconbolt.stats;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -76,10 +76,10 @@ public final class HttpApiStatsProvider implements StatsProvider {
                 }
                 HttpResponse<String> response = client.send(builder.build(), HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() >= 300) {
-                    plugin.getLogger().warning("PigRace stats API returned HTTP " + response.statusCode());
+                    plugin.getLogger().warning("BaconBolt stats API returned HTTP " + response.statusCode());
                 }
             } catch (Exception ex) {
-                plugin.getLogger().log(Level.WARNING, "PigRace stats API request failed (race still counted locally if enabled)", ex);
+                plugin.getLogger().log(Level.WARNING, "BaconBolt stats API request failed (race still counted locally if enabled)", ex);
             }
         });
     }
@@ -107,7 +107,7 @@ public final class HttpApiStatsProvider implements StatsProvider {
             }
         }
         return "{"
-                + "\"game\":\"pigrace\","
+                + "\"game\":\"baconbolt\","
                 + "\"arena\":\"" + escape(result.arena()) + "\","
                 + "\"path\":\"" + escape(result.path()) + "\","
                 + "\"startedAt\":" + result.startedAtEpochMs() + ","

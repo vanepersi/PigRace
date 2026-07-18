@@ -1,4 +1,4 @@
-# PigRace
+# Bacon Bolt
 
 Lounge pig races for **Paper 26.1.2+**. Eat a carrot → shrink onto a pig → race the lounge trail. Mario Kart–style power-up boxes spin effects on your scoreboard. Starts at **2** players (max 4).
 
@@ -17,29 +17,31 @@ Lounge pig races for **Paper 26.1.2+**. Eat a carrot → shrink onto a pig → r
 ./gradlew build
 ```
 
-Jar: `build/libs/PigRace-1.1.0.jar` — **JDK 25+**
+Jar: `build/libs/BaconBolt-1.2.0.jar` — **JDK 25+**
 
 ## Admin setup
 
 ```
-/pigraceadmin create lounge
-/pigraceadmin setlobby lounge
-/pigraceadmin setexit lounge
+/baconboltadmin create lounge
+/baconboltadmin setlobby lounge
+/baconboltadmin setexit lounge
 
-/pigraceadmin createpath lounge main
-/pigraceadmin addspawn lounge main          # race pads (up to 4)
-/pigraceadmin addtrail lounge main          # walk the route, repeat
-/pigraceadmin addpowerup lounge main        # place Mario Kart boxes
-/pigraceadmin setfinish lounge main a
-/pigraceadmin setfinish lounge main b
+/baconboltadmin createpath lounge main
+/baconboltadmin addspawn lounge main          # race pads (up to 4)
+/baconboltadmin addtrail lounge main          # walk the route, repeat
+/baconboltadmin addpowerup lounge main        # place Mario Kart boxes
+/baconboltadmin setfinish lounge main a
+/baconboltadmin setfinish lounge main b
 
-/pigraceadmin setjoinarena lounge
-/pigraceadmin givecarrot                    # players EAT this to join
+/baconboltadmin setjoinarena lounge
+/baconboltadmin givecarrot                    # players EAT this to join
 ```
+
+Aliases: `/bb`, `/bbadmin`
 
 ## Play
 
-1. Eat the Pig Race carrot → shrink + mount pig
+1. Eat the Bacon Bolt carrot → shrink + mount pig
 2. When **2+** players have joined, countdown starts
 3. Follow the glowing trail, drive through gold boxes
 4. Scoreboard spins and lands on an effect
@@ -55,5 +57,5 @@ Configured in `config.yml` under `powerups.effects` (weight, potion, duration). 
 stats:
   provider: none   # or local | http
   http:
-    url: "https://your.api/v1/pigrace/results"
+    url: "https://your.api/v1/baconbolt/results"
 ```

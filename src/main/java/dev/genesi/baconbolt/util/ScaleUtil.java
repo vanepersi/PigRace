@@ -1,4 +1,4 @@
-package dev.genesi.pigrace.util;
+package dev.genesi.baconbolt.util;
 
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;

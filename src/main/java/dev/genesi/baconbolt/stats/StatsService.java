@@ -1,4 +1,4 @@
-package dev.genesi.pigrace.stats;
+package dev.genesi.baconbolt.stats;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -41,7 +41,7 @@ public final class StatsService {
             }
             default -> provider = new NoOpStatsProvider(plugin.getLogger());
         }
-        plugin.getLogger().info("PigRace stats provider: " + provider.id());
+        plugin.getLogger().info("BaconBolt stats provider: " + provider.id());
     }
 
     public StatsProvider provider() {

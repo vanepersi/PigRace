@@ -1,4 +1,4 @@
-package dev.genesi.pigrace.powerup;
+package dev.genesi.baconbolt.powerup;
 
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
@@ -21,10 +21,10 @@ public final class RaceScoreboard {
 
     public void showSpin(Player player, String titleLegacy, String effectLegacy, boolean locked) {
         Scoreboard board = boards.computeIfAbsent(player.getUniqueId(), id -> Bukkit.getScoreboardManager().getNewScoreboard());
-        Objective objective = board.getObjective("pigrace");
+        Objective objective = board.getObjective("baconbolt");
         if (objective == null) {
             objective = board.registerNewObjective(
-                    "pigrace",
+                    "baconbolt",
                     Criteria.DUMMY,
                     LegacyComponentSerializer.legacyAmpersand().deserialize(titleLegacy)
             );
@@ -51,16 +51,16 @@ public final class RaceScoreboard {
 
     public void showRaceHud(Player player, String path, int timeLeft) {
         Scoreboard board = boards.computeIfAbsent(player.getUniqueId(), id -> Bukkit.getScoreboardManager().getNewScoreboard());
-        Objective objective = board.getObjective("pigrace");
+        Objective objective = board.getObjective("baconbolt");
         if (objective == null) {
             objective = board.registerNewObjective(
-                    "pigrace",
+                    "baconbolt",
                     Criteria.DUMMY,
-                    LegacyComponentSerializer.legacyAmpersand().deserialize("&d&lPIG RACE")
+                    LegacyComponentSerializer.legacyAmpersand().deserialize("&d&lBACON BOLT")
             );
             objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         } else {
-            objective.displayName(LegacyComponentSerializer.legacyAmpersand().deserialize("&d&lPIG RACE"));
+            objective.displayName(LegacyComponentSerializer.legacyAmpersand().deserialize("&d&lBACON BOLT"));
         }
         for (String entry : board.getEntries()) {
             board.resetScores(entry);

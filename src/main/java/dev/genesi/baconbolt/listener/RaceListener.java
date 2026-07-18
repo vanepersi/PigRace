@@ -1,7 +1,7 @@
-package dev.genesi.pigrace.listener;
+package dev.genesi.baconbolt.listener;
 
-import dev.genesi.pigrace.PigRacePlugin;
-import dev.genesi.pigrace.model.Arena;
+import dev.genesi.baconbolt.BaconBoltPlugin;
+import dev.genesi.baconbolt.model.Arena;
 import org.bukkit.Sound;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -26,10 +26,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class RaceListener implements Listener {
 
-    private final PigRacePlugin plugin;
+    private final BaconBoltPlugin plugin;
     private final Set<UUID> joinCooldown = ConcurrentHashMap.newKeySet();
 
-    public RaceListener(PigRacePlugin plugin) {
+    public RaceListener(BaconBoltPlugin plugin) {
         this.plugin = plugin;
     }
 
@@ -80,7 +80,7 @@ public final class RaceListener implements Listener {
         }
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> joinCooldown.remove(player.getUniqueId()), 20L);
 
-        if (!player.hasPermission("pigrace.use")) {
+        if (!player.hasPermission("baconbolt.use")) {
             plugin.getMessageService().send(player, "no-permission");
             return;
         }

@@ -1,8 +1,8 @@
-package dev.genesi.pigrace.command;
+package dev.genesi.baconbolt.command;
 
-import dev.genesi.pigrace.PigRacePlugin;
-import dev.genesi.pigrace.model.Arena;
-import dev.genesi.pigrace.model.RacePath;
+import dev.genesi.baconbolt.BaconBoltPlugin;
+import dev.genesi.baconbolt.model.Arena;
+import dev.genesi.baconbolt.model.RacePath;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -16,17 +16,17 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public final class PigRaceAdminCommand implements CommandExecutor, TabCompleter {
+public final class BaconBoltAdminCommand implements CommandExecutor, TabCompleter {
 
-    private final PigRacePlugin plugin;
+    private final BaconBoltPlugin plugin;
 
-    public PigRaceAdminCommand(PigRacePlugin plugin) {
+    public BaconBoltAdminCommand(BaconBoltPlugin plugin) {
         this.plugin = plugin;
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!sender.hasPermission("pigrace.admin")) {
+        if (!sender.hasPermission("baconbolt.admin")) {
             plugin.getMessageService().send(sender, "no-permission");
             return true;
         }
@@ -38,7 +38,7 @@ public final class PigRaceAdminCommand implements CommandExecutor, TabCompleter 
         switch (sub) {
             case "create" -> {
                 if (args.length < 2) {
-                    sender.sendMessage("Usage: /pigraceadmin create <arena>");
+                    sender.sendMessage("Usage: /baconboltadmin create <arena>");
                     return true;
                 }
                 if (plugin.getArenaManager().get(args[1]).isPresent()) {
@@ -50,7 +50,7 @@ public final class PigRaceAdminCommand implements CommandExecutor, TabCompleter 
             }
             case "delete" -> {
                 if (args.length < 2) {
-                    sender.sendMessage("Usage: /pigraceadmin delete <arena>");
+                    sender.sendMessage("Usage: /baconboltadmin delete <arena>");
                     return true;
                 }
                 if (plugin.getArenaManager().delete(args[1])) {
@@ -87,7 +87,7 @@ public final class PigRaceAdminCommand implements CommandExecutor, TabCompleter 
             }
             case "createpath" -> {
                 if (args.length < 3) {
-                    sender.sendMessage("Usage: /pigraceadmin createpath <arena> <path>");
+                    sender.sendMessage("Usage: /baconboltadmin createpath <arena> <path>");
                     return true;
                 }
                 Arena arena = requireArena(sender, args, 1);
@@ -100,7 +100,7 @@ public final class PigRaceAdminCommand implements CommandExecutor, TabCompleter 
             }
             case "deletepath" -> {
                 if (args.length < 3) {
-                    sender.sendMessage("Usage: /pigraceadmin deletepath <arena> <path>");
+                    sender.sendMessage("Usage: /baconboltadmin deletepath <arena> <path>");
                     return true;
                 }
                 Arena arena = requireArena(sender, args, 1);
@@ -120,7 +120,7 @@ public final class PigRaceAdminCommand implements CommandExecutor, TabCompleter 
                     return true;
                 }
                 if (args.length < 3) {
-                    sender.sendMessage("Usage: /pigraceadmin addspawn <arena> <path>");
+                    sender.sendMessage("Usage: /baconboltadmin addspawn <arena> <path>");
                     return true;
                 }
                 Arena arena = requireArena(sender, args, 1);
@@ -142,7 +142,7 @@ public final class PigRaceAdminCommand implements CommandExecutor, TabCompleter 
                     return true;
                 }
                 if (args.length < 4) {
-                    sender.sendMessage("Usage: /pigraceadmin setfinish <arena> <path> <a|b>");
+                    sender.sendMessage("Usage: /baconboltadmin setfinish <arena> <path> <a|b>");
                     return true;
                 }
                 Arena arena = requireArena(sender, args, 1);
@@ -168,7 +168,7 @@ public final class PigRaceAdminCommand implements CommandExecutor, TabCompleter 
                     return true;
                 }
                 if (args.length < 3) {
-                    sender.sendMessage("Usage: /pigraceadmin addtrail <arena> <path>");
+                    sender.sendMessage("Usage: /baconboltadmin addtrail <arena> <path>");
                     return true;
                 }
                 Arena arena = requireArena(sender, args, 1);
@@ -189,7 +189,7 @@ public final class PigRaceAdminCommand implements CommandExecutor, TabCompleter 
                     return true;
                 }
                 if (args.length < 3) {
-                    sender.sendMessage("Usage: /pigraceadmin addpowerup <arena> <path>");
+                    sender.sendMessage("Usage: /baconboltadmin addpowerup <arena> <path>");
                     return true;
                 }
                 Arena arena = requireArena(sender, args, 1);
@@ -214,7 +214,7 @@ public final class PigRaceAdminCommand implements CommandExecutor, TabCompleter 
             }
             case "setjoinarena" -> {
                 if (args.length < 2) {
-                    sender.sendMessage("Usage: /pigraceadmin setjoinarena <arena>");
+                    sender.sendMessage("Usage: /baconboltadmin setjoinarena <arena>");
                     return true;
                 }
                 plugin.getConfig().set("join-item.arena", args[1].toLowerCase(Locale.ROOT));
@@ -270,15 +270,15 @@ public final class PigRaceAdminCommand implements CommandExecutor, TabCompleter 
     }
 
     private void sendHelp(CommandSender sender) {
-        plugin.getMessageService().sendRaw(sender, "&e/pigraceadmin create|delete <arena>");
-        plugin.getMessageService().sendRaw(sender, "&e/pigraceadmin setlobby|setexit <arena>");
-        plugin.getMessageService().sendRaw(sender, "&e/pigraceadmin createpath|deletepath <arena> <path>");
-        plugin.getMessageService().sendRaw(sender, "&e/pigraceadmin addspawn <arena> <path>");
-        plugin.getMessageService().sendRaw(sender, "&e/pigraceadmin addtrail <arena> <path> &7- lounge trail points");
-        plugin.getMessageService().sendRaw(sender, "&e/pigraceadmin addpowerup <arena> <path> &7- Mario Kart boxes");
-        plugin.getMessageService().sendRaw(sender, "&e/pigraceadmin setfinish <arena> <path> <a|b>");
-        plugin.getMessageService().sendRaw(sender, "&e/pigraceadmin givecarrot | setjoinarena <arena>");
-        plugin.getMessageService().sendRaw(sender, "&e/pigraceadmin forcestop <arena> | list | stats | reload");
+        plugin.getMessageService().sendRaw(sender, "&e/baconboltadmin create|delete <arena>");
+        plugin.getMessageService().sendRaw(sender, "&e/baconboltadmin setlobby|setexit <arena>");
+        plugin.getMessageService().sendRaw(sender, "&e/baconboltadmin createpath|deletepath <arena> <path>");
+        plugin.getMessageService().sendRaw(sender, "&e/baconboltadmin addspawn <arena> <path>");
+        plugin.getMessageService().sendRaw(sender, "&e/baconboltadmin addtrail <arena> <path> &7- lounge trail points");
+        plugin.getMessageService().sendRaw(sender, "&e/baconboltadmin addpowerup <arena> <path> &7- Mario Kart boxes");
+        plugin.getMessageService().sendRaw(sender, "&e/baconboltadmin setfinish <arena> <path> <a|b>");
+        plugin.getMessageService().sendRaw(sender, "&e/baconboltadmin givecarrot | setjoinarena <arena>");
+        plugin.getMessageService().sendRaw(sender, "&e/baconboltadmin forcestop <arena> | list | stats | reload");
     }
 
     private Player requirePlayer(CommandSender sender) {
@@ -304,7 +304,7 @@ public final class PigRaceAdminCommand implements CommandExecutor, TabCompleter 
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (!sender.hasPermission("pigrace.admin")) {
+        if (!sender.hasPermission("baconbolt.admin")) {
             return List.of();
         }
         if (args.length == 1) {

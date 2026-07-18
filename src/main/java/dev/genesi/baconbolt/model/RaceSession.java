@@ -1,4 +1,4 @@
-package dev.genesi.pigrace.model;
+package dev.genesi.baconbolt.model;
 
 import org.bukkit.entity.Pig;
 import org.bukkit.entity.Player;
@@ -30,7 +30,7 @@ public final class RaceSession {
     private BukkitTask tickTask;
     private BukkitTask fastTask;
     private final List<Placement> placements = new ArrayList<>();
-    private final List<dev.genesi.pigrace.powerup.PowerUpBox> activeBoxes = new ArrayList<>();
+    private final List<dev.genesi.baconbolt.powerup.PowerUpBox> activeBoxes = new ArrayList<>();
     private final Map<UUID, Boolean> spinning = new LinkedHashMap<>();
 
     public RaceSession(String arenaName) {
@@ -145,7 +145,7 @@ public final class RaceSession {
         return false;
     }
 
-    public List<dev.genesi.pigrace.powerup.PowerUpBox> getActiveBoxes() {
+    public List<dev.genesi.baconbolt.powerup.PowerUpBox> getActiveBoxes() {
         return activeBoxes;
     }
 

@@ -1,6 +1,6 @@
-package dev.genesi.pigrace.manager;
+package dev.genesi.baconbolt.manager;
 
-import dev.genesi.pigrace.model.Arena;
+import dev.genesi.baconbolt.model.Arena;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;

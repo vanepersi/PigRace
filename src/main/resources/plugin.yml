@@ -1,25 +1,25 @@
-name: PigRace
+name: BaconBolt
 version: '${version}'
-main: dev.genesi.pigrace.PigRacePlugin
+main: dev.genesi.baconbolt.BaconBoltPlugin
 api-version: '26.1'
 authors: [Genesi]
-description: Lounge pig races — eat a carrot, shrink onto a pig, trail + Mario Kart boxes. Max 4.
+description: Bacon Bolt — eat a carrot, shrink onto a pig, race the lounge trail. Max 4.
 
 commands:
-  pigrace:
-    description: Join or leave a pig race.
-    usage: /pigrace <join|leave|info|help>
-    aliases: [pr, pigracing]
-  pigraceadmin:
-    description: Admin setup for pig race lounges and join items.
-    usage: /pigraceadmin <subcommand>
-    aliases: [pradmin, pra]
-    permission: pigrace.admin
+  baconbolt:
+    description: Join or leave a Bacon Bolt race.
+    usage: /baconbolt <join|leave|info|help>
+    aliases: [bb, bacon]
+  baconboltadmin:
+    description: Admin setup for Bacon Bolt lounges and join items.
+    usage: /baconboltadmin <subcommand>
+    aliases: [bbadmin, bba]
+    permission: baconbolt.admin
 
 permissions:
-  pigrace.use:
-    description: Join and leave pig races.
+  baconbolt.use:
+    description: Join and leave Bacon Bolt races.
     default: true
-  pigrace.admin:
+  baconbolt.admin:
     description: Manage arenas, paths, join items, and force control.
     default: op

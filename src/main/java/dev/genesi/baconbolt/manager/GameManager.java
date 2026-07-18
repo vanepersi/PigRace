@@ -1,14 +1,14 @@
-package dev.genesi.pigrace.manager;
+package dev.genesi.baconbolt.manager;
 
-import dev.genesi.pigrace.PigRacePlugin;
-import dev.genesi.pigrace.model.Arena;
-import dev.genesi.pigrace.model.RacePath;
-import dev.genesi.pigrace.model.RaceSession;
-import dev.genesi.pigrace.powerup.PowerUpBox;
-import dev.genesi.pigrace.powerup.PowerUpEffect;
-import dev.genesi.pigrace.powerup.RaceScoreboard;
-import dev.genesi.pigrace.stats.RaceResult;
-import dev.genesi.pigrace.util.ScaleUtil;
+import dev.genesi.baconbolt.BaconBoltPlugin;
+import dev.genesi.baconbolt.model.Arena;
+import dev.genesi.baconbolt.model.RacePath;
+import dev.genesi.baconbolt.model.RaceSession;
+import dev.genesi.baconbolt.powerup.PowerUpBox;
+import dev.genesi.baconbolt.powerup.PowerUpEffect;
+import dev.genesi.baconbolt.powerup.RaceScoreboard;
+import dev.genesi.baconbolt.stats.RaceResult;
+import dev.genesi.baconbolt.util.ScaleUtil;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Input;
@@ -39,14 +39,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public final class GameManager {
 
-    private final PigRacePlugin plugin;
+    private final BaconBoltPlugin plugin;
     private final RaceScoreboard scoreboards = new RaceScoreboard();
     private final Map<String, RaceSession> byArena = new HashMap<>();
     private final Map<UUID, RaceSession> byPlayer = new HashMap<>();
     /** Temporary allow-list so cleanup can dismount without remount fighting. */
     private final Set<UUID> allowDismount = new HashSet<>();
 
-    public GameManager(PigRacePlugin plugin) {
+    public GameManager(BaconBoltPlugin plugin) {
         this.plugin = plugin;
     }
 

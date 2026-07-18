@@ -1,4 +1,4 @@
-package dev.genesi.pigrace.manager;
+package dev.genesi.baconbolt.manager;
 
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.command.CommandSender;
@@ -18,7 +18,7 @@ public final class MessageService {
     }
 
     public void reload() {
-        prefix = plugin.getConfig().getString("messages.prefix", "&8[&dPig Race&8] &r");
+        prefix = plugin.getConfig().getString("messages.prefix", "&8[&dBacon Bolt&8] &r");
     }
 
     public void send(CommandSender sender, String key) {

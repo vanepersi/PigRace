@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "dev.genesi"
-version = "1.1.3"
+version = "1.2.0"
 
 repositories {
     mavenCentral()
@@ -40,7 +40,7 @@ tasks.processResources {
 }
 
 tasks.jar {
-    archiveBaseName.set("PigRace")
+    archiveBaseName.set("BaconBolt")
 }
 
 tasks.test {

@@ -1,4 +1,4 @@
-package dev.genesi.pigrace.stats;
+package dev.genesi.baconbolt.stats;
 
 /**
  * Pluggable stats / leaderboard sink.

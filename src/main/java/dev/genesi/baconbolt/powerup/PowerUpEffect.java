@@ -1,4 +1,4 @@
-package dev.genesi.pigrace.powerup;
+package dev.genesi.baconbolt.powerup;
 
 import org.bukkit.potion.PotionEffectType;
 

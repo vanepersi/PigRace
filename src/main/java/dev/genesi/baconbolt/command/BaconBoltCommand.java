@@ -1,8 +1,8 @@
-package dev.genesi.pigrace.command;
+package dev.genesi.baconbolt.command;
 
-import dev.genesi.pigrace.PigRacePlugin;
-import dev.genesi.pigrace.model.Arena;
-import dev.genesi.pigrace.model.RaceSession;
+import dev.genesi.baconbolt.BaconBoltPlugin;
+import dev.genesi.baconbolt.model.Arena;
+import dev.genesi.baconbolt.model.RaceSession;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -16,11 +16,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public final class PigRaceCommand implements CommandExecutor, TabCompleter {
+public final class BaconBoltCommand implements CommandExecutor, TabCompleter {
 
-    private final PigRacePlugin plugin;
+    private final BaconBoltPlugin plugin;
 
-    public PigRaceCommand(PigRacePlugin plugin) {
+    public BaconBoltCommand(BaconBoltPlugin plugin) {
         this.plugin = plugin;
     }
 
@@ -30,7 +30,7 @@ public final class PigRaceCommand implements CommandExecutor, TabCompleter {
             plugin.getMessageService().send(sender, "players-only");
             return true;
         }
-        if (!player.hasPermission("pigrace.use")) {
+        if (!player.hasPermission("baconbolt.use")) {
             plugin.getMessageService().send(player, "no-permission");
             return true;
         }
@@ -72,10 +72,10 @@ public final class PigRaceCommand implements CommandExecutor, TabCompleter {
     }
 
     private void sendHelp(Player player) {
-        plugin.getMessageService().sendRaw(player, "&e/pigrace join [arena] &7- join a lounge race");
-        plugin.getMessageService().sendRaw(player, "&e/pigrace leave &7- leave the race");
-        plugin.getMessageService().sendRaw(player, "&e/pigrace info &7- current race status");
-        plugin.getMessageService().sendRaw(player, "&7Or &eeat&7 a Pig Race carrot to join!");
+        plugin.getMessageService().sendRaw(player, "&e/baconbolt join [arena] &7- join a lounge race");
+        plugin.getMessageService().sendRaw(player, "&e/baconbolt leave &7- leave the race");
+        plugin.getMessageService().sendRaw(player, "&e/baconbolt info &7- current race status");
+        plugin.getMessageService().sendRaw(player, "&7Or &eeat&7 a Bacon Bolt carrot to join!");
     }
 
     @Override

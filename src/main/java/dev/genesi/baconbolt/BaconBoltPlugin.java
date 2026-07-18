@@ -1,17 +1,17 @@
-package dev.genesi.pigrace;
+package dev.genesi.baconbolt;
 
-import dev.genesi.pigrace.command.PigRaceAdminCommand;
-import dev.genesi.pigrace.command.PigRaceCommand;
-import dev.genesi.pigrace.listener.RaceListener;
-import dev.genesi.pigrace.manager.ArenaManager;
-import dev.genesi.pigrace.manager.GameManager;
-import dev.genesi.pigrace.manager.MessageService;
-import dev.genesi.pigrace.powerup.PowerUpRegistry;
-import dev.genesi.pigrace.stats.StatsService;
-import dev.genesi.pigrace.util.ItemFactory;
+import dev.genesi.baconbolt.command.BaconBoltAdminCommand;
+import dev.genesi.baconbolt.command.BaconBoltCommand;
+import dev.genesi.baconbolt.listener.RaceListener;
+import dev.genesi.baconbolt.manager.ArenaManager;
+import dev.genesi.baconbolt.manager.GameManager;
+import dev.genesi.baconbolt.manager.MessageService;
+import dev.genesi.baconbolt.powerup.PowerUpRegistry;
+import dev.genesi.baconbolt.stats.StatsService;
+import dev.genesi.baconbolt.util.ItemFactory;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public final class PigRacePlugin extends JavaPlugin {
+public final class BaconBoltPlugin extends JavaPlugin {
 
     private ArenaManager arenaManager;
     private GameManager gameManager;
@@ -34,16 +34,16 @@ public final class PigRacePlugin extends JavaPlugin {
         arenaManager.load();
         gameManager.purgeRaceItemsOnline();
 
-        PigRaceCommand playerCommand = new PigRaceCommand(this);
-        PigRaceAdminCommand adminCommand = new PigRaceAdminCommand(this);
-        getCommand("pigrace").setExecutor(playerCommand);
-        getCommand("pigrace").setTabCompleter(playerCommand);
-        getCommand("pigraceadmin").setExecutor(adminCommand);
-        getCommand("pigraceadmin").setTabCompleter(adminCommand);
+        BaconBoltCommand playerCommand = new BaconBoltCommand(this);
+        BaconBoltAdminCommand adminCommand = new BaconBoltAdminCommand(this);
+        getCommand("baconbolt").setExecutor(playerCommand);
+        getCommand("baconbolt").setTabCompleter(playerCommand);
+        getCommand("baconboltadmin").setExecutor(adminCommand);
+        getCommand("baconboltadmin").setTabCompleter(adminCommand);
 
         getServer().getPluginManager().registerEvents(new RaceListener(this), this);
 
-        getLogger().info("PigRace enabled — stats: " + statsService.provider().id()
+        getLogger().info("BaconBolt enabled — stats: " + statsService.provider().id()
                 + ", power-ups: " + powerUpRegistry.all().size());
     }
 

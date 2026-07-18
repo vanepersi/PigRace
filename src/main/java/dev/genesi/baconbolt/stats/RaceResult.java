@@ -1,4 +1,4 @@
-package dev.genesi.pigrace.stats;
+package dev.genesi.baconbolt.stats;
 
 import java.util.List;
 import java.util.UUID;

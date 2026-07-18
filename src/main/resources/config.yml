@@ -1,4 +1,4 @@
-# PigRace — lounge pig races for Paper 26.1.2+
+# Bacon Bolt — lounge pig races for Paper 26.1.2+
 #
 # Eat a join carrot → shrink animation + sit on a pig.
 # Race starts once 2+ players join. Follow the lounge trail.
@@ -49,13 +49,13 @@ teleport-on-end: true
 
 # ---------------------------------------------------------------------------
 # Join carrot — EAT this to join (not click)
-# Admins: /pigraceadmin givejoinitem
+# Admins: /baconboltadmin givejoinitem
 # ---------------------------------------------------------------------------
 join-item:
   material: CARROT
-  display-name: "&6&lPig Race Carrot"
+  display-name: "&6&lBacon Bolt Carrot"
   lore:
-    - "&7Eat to join the lounge pig race!"
+    - "&7Eat to join Bacon Bolt!"
     - "&8Needs 2 players to start"
   custom-model-data: 0
   item-model: ""
@@ -132,9 +132,9 @@ powerups:
       amplifier: 0
       duration-ticks: 100
 
-action-bar-waiting: "&dPig Race &8| &f{count}/{max} &7waiting &8| &e{seconds}s"
+action-bar-waiting: "&dBacon Bolt &8| &f{count}/{max} &7waiting &8| &e{seconds}s"
 action-bar-countdown: "&dGet ready! &e{seconds}"
-action-bar-racing: "&dPig Race &8| &e{time}s &8| &fPath &b{path}"
+action-bar-racing: "&dBacon Bolt &8| &e{time}s &8| &fPath &b{path}"
 
 stats:
   provider: none
@@ -142,7 +142,7 @@ stats:
     file: stats.yml
   http:
     enabled: false
-    url: "https://api.example.com/v1/pigrace/results"
+    url: "https://api.example.com/v1/baconbolt/results"
     method: POST
     auth-header: ""
     headers: {}
@@ -150,7 +150,7 @@ stats:
     include-placements: true
 
 messages:
-  prefix: "&8[&dPig Race&8] &r"
+  prefix: "&8[&dBacon Bolt&8] &r"
   no-permission: "&cYou don't have permission."
   players-only: "&cOnly players can use this command."
   arena-not-found: "&cArena &e{arena}&c was not found."
@@ -182,7 +182,7 @@ messages:
   finish-set: "&aSet finish corner &e{corner}&a for path &e{path}&a."
   trail-added: "&aAdded trail waypoint &e#{index}&a to &e{path}&a."
   powerup-added: "&aAdded power-up box &e#{index}&a to &e{path}&a."
-  join-item-given: "&aGave you the Pig Race join carrot — eat it to join!"
+  join-item-given: "&aGave you the Bacon Bolt join carrot — eat it to join!"
   join-item-bound: "&aJoin carrot now points at arena &e{arena}&a."
   pig-lost: "&cYour pig vanished — a new one appeared!"
   powerup-got: "&6Item! &r{effect}"
