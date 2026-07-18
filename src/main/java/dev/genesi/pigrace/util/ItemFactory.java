@@ -4,6 +4,7 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -110,6 +111,50 @@ public final class ItemFactory {
 
     public boolean isSteerItem(ItemStack stack) {
         return hasMarker(stack, STEER_ITEM_KEY);
+    }
+
+    public boolean isRaceItem(ItemStack stack) {
+        return isJoinItem(stack) || isSteerItem(stack);
+    }
+
+    /** Remove every PigRace join/steer item from the player (inventory + cursor + offhand). */
+    public void clearRaceItems(Player player) {
+        clearMatching(player, true, true);
+    }
+
+    public void clearJoinItems(Player player) {
+        clearMatching(player, true, false);
+    }
+
+    public void clearSteerItems(Player player) {
+        clearMatching(player, false, true);
+    }
+
+    private void clearMatching(Player player, boolean join, boolean steer) {
+        for (int i = 0; i < player.getInventory().getSize(); i++) {
+            ItemStack stack = player.getInventory().getItem(i);
+            if (matches(stack, join, steer)) {
+                player.getInventory().setItem(i, null);
+            }
+        }
+        ItemStack off = player.getInventory().getItemInOffHand();
+        if (matches(off, join, steer)) {
+            player.getInventory().setItemInOffHand(null);
+        }
+        ItemStack cursor = player.getItemOnCursor();
+        if (matches(cursor, join, steer)) {
+            player.setItemOnCursor(null);
+        }
+    }
+
+    private boolean matches(ItemStack stack, boolean join, boolean steer) {
+        if (stack == null || !stack.hasItemMeta()) {
+            return false;
+        }
+        if (join && isJoinItem(stack)) {
+            return true;
+        }
+        return steer && isSteerItem(stack);
     }
 
     private boolean hasMarker(ItemStack stack, String expected) {

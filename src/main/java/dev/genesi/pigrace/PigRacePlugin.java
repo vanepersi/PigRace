@@ -32,6 +32,7 @@ public final class PigRacePlugin extends JavaPlugin {
         this.gameManager = new GameManager(this);
 
         arenaManager.load();
+        gameManager.purgeRaceItemsOnline();
 
         PigRaceCommand playerCommand = new PigRaceCommand(this);
         PigRaceAdminCommand adminCommand = new PigRaceAdminCommand(this);

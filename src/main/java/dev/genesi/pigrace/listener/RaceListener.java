@@ -14,6 +14,7 @@ import org.bukkit.event.entity.EntityDismountEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
@@ -26,7 +27,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class RaceListener implements Listener {
 
     private final PigRacePlugin plugin;
-    /** Prevents double-join if both interact + consume fire. */
     private final Set<UUID> joinCooldown = ConcurrentHashMap.newKeySet();
 
     public RaceListener(PigRacePlugin plugin) {
@@ -34,8 +34,8 @@ public final class RaceListener implements Listener {
     }
 
     /**
-     * Force-join on right-click even when the player is full in survival
-     * (vanilla refuses to eat food at max hunger).
+     * Force-join on right-click even at full hunger.
+     * Join carrots are stripped from inventory only after a successful join.
      */
     @EventHandler(priority = EventPriority.HIGH)
     public void onUseJoinCarrot(PlayerInteractEvent event) {
@@ -53,12 +53,11 @@ public final class RaceListener implements Listener {
             return;
         }
 
-        // Stop vanilla eat rules (full hunger, etc.) — we handle it ourselves
         event.setCancelled(true);
         event.setUseItemInHand(Event.Result.DENY);
         event.setUseInteractedBlock(Event.Result.DENY);
 
-        attemptJoinFromCarrot(player, held, hand, true);
+        attemptJoinFromCarrot(player, held, hand);
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
@@ -67,14 +66,15 @@ public final class RaceListener implements Listener {
         if (!plugin.getItemFactory().isJoinItem(item)) {
             return;
         }
-        // Interact handler already consumes + joins; skip duplicate if it raced here
+        // Cancel vanilla consume — interact path (or this) handles join + inventory clear
+        event.setCancelled(true);
         if (joinCooldown.contains(event.getPlayer().getUniqueId())) {
             return;
         }
-        attemptJoinFromCarrot(event.getPlayer(), item, EquipmentSlot.HAND, false);
+        attemptJoinFromCarrot(event.getPlayer(), item, EquipmentSlot.HAND);
     }
 
-    private void attemptJoinFromCarrot(Player player, ItemStack stack, EquipmentSlot hand, boolean consumeItem) {
+    private void attemptJoinFromCarrot(Player player, ItemStack stack, EquipmentSlot hand) {
         if (!joinCooldown.add(player.getUniqueId())) {
             return;
         }
@@ -91,25 +91,18 @@ public final class RaceListener implements Listener {
             return;
         }
 
-        if (consumeItem) {
-            ItemStack held = player.getInventory().getItem(hand);
-            if (plugin.getItemFactory().isJoinItem(held)) {
-                if (held.getAmount() <= 1) {
-                    player.getInventory().setItem(hand, null);
-                } else {
-                    held.setAmount(held.getAmount() - 1);
-                    player.getInventory().setItem(hand, held);
-                }
-            }
-            player.swingHand(hand);
-            player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1f, 1f);
-        }
+        player.swingHand(hand);
+        player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1f, 1f);
 
-        plugin.getServer().getScheduler().runTask(plugin, () ->
-                plugin.getGameManager().tryJoin(player, arena.get()));
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            if (plugin.getGameManager().tryJoin(player, arena.get())) {
+                // Strip every join carrot so nothing lingers after restart / leave
+                plugin.getItemFactory().clearJoinItems(player);
+            }
+        });
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = false)
     public void onDismount(EntityDismountEvent event) {
         Entity rider = event.getEntity();
         if (!(rider instanceof Player player)) {
@@ -118,12 +111,35 @@ public final class RaceListener implements Listener {
         if (!plugin.getGameManager().isPlaying(player.getUniqueId())) {
             return;
         }
+        if (plugin.getGameManager().canDismount(player.getUniqueId())) {
+            return;
+        }
+        // Never allow dismount while in a race session
+        event.setCancelled(true);
         plugin.getGameManager().tryRemount(player);
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onSneak(PlayerToggleSneakEvent event) {
+        if (!event.isSneaking()) {
+            return;
+        }
+        Player player = event.getPlayer();
+        if (!plugin.getGameManager().isPlaying(player.getUniqueId())) {
+            return;
+        }
+        if (plugin.getGameManager().canDismount(player.getUniqueId())) {
+            return;
+        }
+        if (player.getVehicle() != null) {
+            event.setCancelled(true);
+        }
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         joinCooldown.remove(event.getPlayer().getUniqueId());
         plugin.getGameManager().leave(event.getPlayer(), false);
+        plugin.getItemFactory().clearRaceItems(event.getPlayer());
     }
 }

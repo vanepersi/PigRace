@@ -28,18 +28,20 @@ ride-pigs: true
 # Keep remounting if they fall off mid-race
 auto-remount: true
 
-# Pig drive (blocks per tick-ish via velocity). Works at any player/pig scale.
+# Pig drive — intentionally slow by default. SPEED/BOOST power-ups multiply this.
 pig-drive:
-  # Forward speed while holding W
-  speed: 0.42
-  # Sprint multiplier (Ctrl)
-  sprint-multiplier: 1.35
-  # Backward speed
-  reverse-speed: 0.22
-  # Jump strength when on ground + space
-  jump-strength: 0.48
-  # Face the player's look yaw every tick
+  # Base forward speed (keep low; power-ups make you fast)
+  speed: 0.18
+  # No sprint boost unless you get a speed power-up
+  sprint-multiplier: 1.0
+  reverse-speed: 0.10
+  jump-strength: 0.38
   turn-with-look: true
+  # Extra multipliers while the rider has these potion effects from item boxes
+  speed-effect-multiplier: 1.55
+  boost-effect-multiplier: 2.1
+  # Slowness power-up makes you crawl
+  slow-effect-multiplier: 0.45
 
 finish-requires-pig: false
 finish-check-radius-fallback: 2.5
