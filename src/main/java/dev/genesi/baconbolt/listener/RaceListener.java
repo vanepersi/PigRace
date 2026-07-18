@@ -3,6 +3,7 @@ package dev.genesi.baconbolt.listener;
 import dev.genesi.baconbolt.BaconBoltPlugin;
 import dev.genesi.baconbolt.model.Arena;
 import org.bukkit.Sound;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -34,7 +35,53 @@ public final class RaceListener implements Listener {
     }
 
     /**
-     * Force-join on right-click even at full hunger.
+     * Click the arena join block → receive a join carrot (must eat it to enter).
+     */
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onClickJoinBlock(PlayerInteractEvent event) {
+        Action action = event.getAction();
+        if (action != Action.RIGHT_CLICK_BLOCK && action != Action.LEFT_CLICK_BLOCK) {
+            return;
+        }
+        if (event.getHand() != EquipmentSlot.HAND) {
+            return;
+        }
+        Block block = event.getClickedBlock();
+        if (block == null) {
+            return;
+        }
+        Optional<Arena> arenaOpt = plugin.getArenaManager().findByJoinBlock(block.getLocation());
+        if (arenaOpt.isEmpty()) {
+            return;
+        }
+        event.setCancelled(true);
+        event.setUseInteractedBlock(Event.Result.DENY);
+        event.setUseItemInHand(Event.Result.DENY);
+
+        Player player = event.getPlayer();
+        if (!player.hasPermission("baconbolt.use")) {
+            plugin.getMessageService().send(player, "no-permission");
+            return;
+        }
+        if (plugin.getGameManager().isPlaying(player.getUniqueId())) {
+            plugin.getMessageService().send(player, "already-playing");
+            return;
+        }
+        // Don't stack carrots — one is enough
+        for (ItemStack stack : player.getInventory().getContents()) {
+            if (plugin.getItemFactory().isJoinItem(stack)) {
+                plugin.getMessageService().send(player, "already-have-carrot");
+                return;
+            }
+        }
+        ItemStack carrot = plugin.getItemFactory().createJoinItem(arenaOpt.get().getName());
+        player.getInventory().addItem(carrot);
+        player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1f, 1.2f);
+        plugin.getMessageService().send(player, "carrot-received", Map.of("arena", arenaOpt.get().getName()));
+    }
+
+    /**
+     * Force-join on eat/right-click even at full hunger.
      * Join carrots are stripped from inventory only after a successful join.
      */
     @EventHandler(priority = EventPriority.HIGH)

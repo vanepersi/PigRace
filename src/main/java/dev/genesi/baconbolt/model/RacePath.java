@@ -110,12 +110,25 @@ public final class RacePath {
     }
 
     public BoundingBox finishBox() {
+        return finishBox(0.0);
+    }
+
+    /** Finish volume expanded by {@code pad} blocks on every axis (helps tiny/scaled racers). */
+    public BoundingBox finishBox(double pad) {
         Location a = finishA == null ? null : finishA.toLocation();
         Location b = finishB == null ? null : finishB.toLocation();
         if (a == null || b == null) {
             return null;
         }
-        return BoundingBox.of(a, b);
+        BoundingBox box = BoundingBox.of(a, b);
+        if (pad > 0) {
+            box.expand(pad);
+        }
+        // Ensure a minimum height so flat corner picks still work
+        if (box.getHeight() < 1.5) {
+            box.expand(0, 0.75, 0);
+        }
+        return box;
     }
 
     public Location finishCenter() {
@@ -134,12 +147,20 @@ public final class RacePath {
     }
 
     public boolean contains(Location location, double radiusFallback) {
+        return contains(location, radiusFallback, 1.25);
+    }
+
+    public boolean contains(Location location, double radiusFallback, double pad) {
         if (location == null) {
             return false;
         }
-        BoundingBox box = finishBox();
+        BoundingBox box = finishBox(pad);
         if (box != null) {
-            return box.contains(location.toVector());
+            // Check body + feet (pig/player center can sit above the pad)
+            if (box.contains(location.toVector())) {
+                return true;
+            }
+            return box.contains(location.toVector().add(new org.bukkit.util.Vector(0, 0.9, 0)));
         }
         Location center = finishCenter();
         if (center == null || center.getWorld() == null || location.getWorld() == null) {
@@ -148,7 +169,8 @@ public final class RacePath {
         if (!center.getWorld().equals(location.getWorld())) {
             return false;
         }
-        return center.distanceSquared(location) <= radiusFallback * radiusFallback;
+        double r = Math.max(radiusFallback, pad + 1.5);
+        return center.distanceSquared(location) <= r * r;
     }
 
     public Map<String, Object> serialize() {

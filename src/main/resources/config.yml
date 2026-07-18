@@ -44,7 +44,13 @@ pig-drive:
   slow-effect-multiplier: 0.45
 
 finish-requires-pig: false
-finish-check-radius-fallback: 2.5
+finish-check-radius-fallback: 3.5
+# Expand finish box so tiny pigs still trigger
+finish-pad: 1.5
+# End the whole race when the first player crosses the finish
+end-on-first-finish: true
+# Extra seconds after first finish before forcing end (0 = immediate)
+end-grace-seconds: 0
 teleport-on-end: true
 
 # ---------------------------------------------------------------------------
@@ -69,12 +75,16 @@ steer-item:
     - "&7WASD to drive your pig!"
     - "&7Space to jump"
 
-# Trail particles along path waypoints
+# Trail particles — only racers see them, portion ahead only (clears behind)
 trail:
   enabled: true
   particle: END_ROD
   density: 4
   y-offset: 0.35
+  # How many segments ahead of the player to show
+  lookahead-segments: 2
+  # Distance to a waypoint before that segment is considered "passed"
+  advance-radius: 3.5
 
 # ---------------------------------------------------------------------------
 # Mario Kart–style power-up boxes
@@ -158,7 +168,7 @@ messages:
   arena-full: "&cThat race is full (&e{max}&c players)."
   already-playing: "&cYou are already in a pig race."
   not-playing: "&cYou are not in a pig race."
-  joined: "&aJoined &e{arena}&a! &7({count}/{max}) &8— eat a carrot to join!"
+  joined: "&aJoined &e{arena}&a! &7({count}/{max})"
   joining-anim: "&dShrinking... hop on!"
   need-more-players: "&eWaiting for &f{needed}&e more player(s) to start..."
   left: "&eYou left the pig race."
@@ -184,6 +194,9 @@ messages:
   powerup-added: "&aAdded power-up box &e#{index}&a to &e{path}&a."
   join-item-given: "&aGave you the Bacon Bolt join carrot — eat it to join!"
   join-item-bound: "&aJoin carrot now points at arena &e{arena}&a."
+  join-block-set: "&aJoin block for &e{arena}&a set to &e{block}&a. Players click it to get a carrot."
+  carrot-received: "&aYou got a Bacon Bolt carrot for &e{arena}&a — &eeat it&a to join!"
+  already-have-carrot: "&eYou already have a join carrot — eat it to enter!"
   pig-lost: "&cYour pig vanished — a new one appeared!"
   powerup-got: "&6Item! &r{effect}"
   interfere-hint: "&7Others can interfere — hold your carrot stick and race!"

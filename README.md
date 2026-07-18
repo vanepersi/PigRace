@@ -34,18 +34,21 @@ Jar: `build/libs/BaconBolt-1.2.0.jar` — **JDK 25+**
 /baconboltadmin setfinish lounge main b
 
 /baconboltadmin setjoinarena lounge
-/baconboltadmin givecarrot                    # players EAT this to join
+/baconboltadmin setjoinblock lounge           # look at a block — click gives a carrot
+/baconboltadmin givecarrot                    # optional manual carrot
 ```
 
 Aliases: `/bb`, `/bbadmin`
 
+Website / API hookup notes for agents: [`docs/AGENT_API_HOOKUP.md`](docs/AGENT_API_HOOKUP.md)
+
 ## Play
 
-1. Eat the Bacon Bolt carrot → shrink + mount pig
-2. When **2+** players have joined, countdown starts
-3. Follow the glowing trail, drive through gold boxes
-4. Scoreboard spins and lands on an effect
-5. First through the finish wins
+1. Click the join block → get a carrot → **eat** it to join
+2. When **2+** players have joined, countdown starts (mounted on pads)
+3. Follow the trail **portion ahead of you** (passed smoke clears)
+4. Drive through gold boxes for scoreboard power-ups
+5. First through the finish ends the race
 
 ## Power-ups
 

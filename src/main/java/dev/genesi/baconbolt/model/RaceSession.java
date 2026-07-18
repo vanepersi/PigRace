@@ -182,6 +182,8 @@ public final class RaceSession {
         private boolean animating;
         /** Locked spawn pad during countdown — pig is held here until GO. */
         private Location startSpawn;
+        /** Highest trail waypoint index reached (smoke behind this is hidden). */
+        private int trailProgress;
 
         public Racer(UUID uuid, String name) {
             this.uuid = uuid;
@@ -234,6 +236,20 @@ public final class RaceSession {
 
         public void setStartSpawn(Location startSpawn) {
             this.startSpawn = startSpawn == null ? null : startSpawn.clone();
+        }
+
+        public int getTrailProgress() {
+            return trailProgress;
+        }
+
+        public void advanceTrailProgress(int index) {
+            if (index > trailProgress) {
+                trailProgress = index;
+            }
+        }
+
+        public void resetTrailProgress() {
+            this.trailProgress = 0;
         }
     }
 

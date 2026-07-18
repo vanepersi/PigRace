@@ -81,4 +81,16 @@ public final class ArenaManager {
     public Collection<Arena> all() {
         return arenas.values();
     }
+
+    public Optional<Arena> findByJoinBlock(org.bukkit.Location blockLoc) {
+        if (blockLoc == null) {
+            return Optional.empty();
+        }
+        for (Arena arena : arenas.values()) {
+            if (arena.isJoinBlock(blockLoc)) {
+                return Optional.of(arena);
+            }
+        }
+        return Optional.empty();
+    }
 }

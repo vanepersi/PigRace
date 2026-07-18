@@ -17,6 +17,8 @@ public final class Arena {
     private final String name;
     private StoredLocation lobby;
     private StoredLocation exit;
+    /** Block players click to receive a join carrot. */
+    private StoredLocation joinBlock;
     private final Map<String, RacePath> paths = new LinkedHashMap<>();
 
     public Arena(String name) {
@@ -41,6 +43,26 @@ public final class Arena {
 
     public void setExit(Location exit) {
         this.exit = StoredLocation.from(exit);
+    }
+
+    public Location getJoinBlock() {
+        return joinBlock == null ? null : joinBlock.toLocation();
+    }
+
+    public void setJoinBlock(Location joinBlock) {
+        this.joinBlock = StoredLocation.from(joinBlock);
+    }
+
+    public boolean isJoinBlock(Location blockLoc) {
+        if (joinBlock == null || blockLoc == null || blockLoc.getWorld() == null) {
+            return false;
+        }
+        if (!joinBlock.getWorldName().equalsIgnoreCase(blockLoc.getWorld().getName())) {
+            return false;
+        }
+        return joinBlock.getBlockX() == blockLoc.getBlockX()
+                && joinBlock.getBlockY() == blockLoc.getBlockY()
+                && joinBlock.getBlockZ() == blockLoc.getBlockZ();
     }
 
     public Collection<RacePath> getPaths() {
@@ -104,6 +126,9 @@ public final class Arena {
         if (exit != null) {
             map.put("exit", exit.serialize());
         }
+        if (joinBlock != null) {
+            map.put("join-block", joinBlock.serialize());
+        }
         Map<String, Object> pathMaps = new LinkedHashMap<>();
         for (Map.Entry<String, RacePath> entry : paths.entrySet()) {
             pathMaps.put(entry.getKey(), entry.getValue().serialize());
@@ -124,6 +149,10 @@ public final class Arena {
         arena.exit = StoredLocation.deserialize(section.getConfigurationSection("exit"));
         if (arena.exit == null && section.get("exit") instanceof Map<?, ?> map) {
             arena.exit = StoredLocation.deserializeMap(map);
+        }
+        arena.joinBlock = StoredLocation.deserialize(section.getConfigurationSection("join-block"));
+        if (arena.joinBlock == null && section.get("join-block") instanceof Map<?, ?> map) {
+            arena.joinBlock = StoredLocation.deserializeMap(map);
         }
         ConfigurationSection pathsSection = section.getConfigurationSection("paths");
         if (pathsSection != null) {

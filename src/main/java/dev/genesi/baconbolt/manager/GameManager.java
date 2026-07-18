@@ -327,6 +327,7 @@ public final class GameManager {
             rotatePowerUps(session);
             if (session.getPhase() == RaceSession.Phase.RACING) {
                 checkPowerUpCollects(session);
+                checkFinishes(session);
                 showTrail(session);
             }
         }
@@ -390,6 +391,7 @@ public final class GameManager {
             return;
         }
         racer.setStartSpawn(spawn);
+        racer.resetTrailProgress();
         allowDismount.add(player.getUniqueId());
         try {
             if (player.getVehicle() != null) {
@@ -846,59 +848,104 @@ public final class GameManager {
         if (path == null) {
             return;
         }
-        List<Location> points = new ArrayList<>();
-        List<Location> spawns = path.getSpawns();
-        if (!spawns.isEmpty()) {
-            points.add(spawns.getFirst().clone().add(0, 0.2, 0));
-        }
-        for (Location trail : path.getTrail()) {
-            points.add(trail.clone().add(0, plugin.getConfig().getDouble("trail.y-offset", 0.35), 0));
-        }
-        Location finish = path.finishCenter();
-        if (finish != null) {
-            points.add(finish.clone().add(0, 0.3, 0));
-        }
+        List<Location> points = buildTrailPoints(path);
         if (points.size() < 2) {
-            return;
-        }
-
-        // Only racers see the path — not spectators / lounge bystanders
-        List<Player> viewers = new ArrayList<>();
-        for (UUID uuid : session.getRacers().keySet()) {
-            Player player = Bukkit.getPlayer(uuid);
-            if (player != null && player.isOnline()) {
-                viewers.add(player);
-            }
-        }
-        if (viewers.isEmpty()) {
             return;
         }
 
         Particle particle = parseParticle(plugin.getConfig().getString("trail.particle", "END_ROD"), Particle.END_ROD);
         int density = Math.max(1, plugin.getConfig().getInt("trail.density", 4));
-        for (int i = 0; i < points.size() - 1; i++) {
-            Location a = points.get(i);
-            Location b = points.get(i + 1);
-            if (a.getWorld() == null || b.getWorld() == null || !a.getWorld().equals(b.getWorld())) {
+        int lookahead = Math.max(1, plugin.getConfig().getInt("trail.lookahead-segments", 2));
+        double advanceRadius = plugin.getConfig().getDouble("trail.advance-radius", 3.5);
+
+        for (RaceSession.Racer racer : session.getRacers().values()) {
+            if (racer.isFinished()) {
                 continue;
             }
-            Vector step = b.toVector().subtract(a.toVector()).multiply(1.0 / (density + 1));
-            Location cursor = a.clone();
-            for (int s = 0; s < density; s++) {
-                cursor.add(step);
-                for (Player viewer : viewers) {
-                    viewer.spawnParticle(particle, cursor, 1, 0.02, 0.02, 0.02, 0);
+            Player player = Bukkit.getPlayer(racer.getUuid());
+            if (player == null || !player.isOnline()) {
+                continue;
+            }
+            Location probe = player.getLocation();
+            Pig pig = racer.getPig();
+            if (pig != null && pig.isValid()) {
+                probe = pig.getLocation();
+            }
+
+            int nearest = nearestTrailIndex(probe, points);
+            // Advance progress when close to a waypoint at/after current progress
+            if (nearest >= racer.getTrailProgress()
+                    && points.get(nearest).distanceSquared(probe) <= advanceRadius * advanceRadius) {
+                racer.advanceTrailProgress(nearest);
+            }
+            // Also advance if we've clearly passed a point (closer to a later one)
+            if (nearest > racer.getTrailProgress()) {
+                racer.advanceTrailProgress(nearest);
+            }
+
+            int from = racer.getTrailProgress();
+            int to = Math.min(points.size() - 1, from + lookahead);
+            // Portion ahead only — nothing behind `from`
+            for (int i = from; i < to; i++) {
+                Location a = points.get(i);
+                Location b = points.get(i + 1);
+                if (a.getWorld() == null || b.getWorld() == null || !a.getWorld().equals(b.getWorld())) {
+                    continue;
+                }
+                Vector step = b.toVector().subtract(a.toVector()).multiply(1.0 / (density + 1));
+                Location cursor = a.clone();
+                for (int s = 0; s < density; s++) {
+                    cursor.add(step);
+                    player.spawnParticle(particle, cursor, 1, 0.02, 0.02, 0.02, 0);
                 }
             }
         }
     }
 
+    private List<Location> buildTrailPoints(RacePath path) {
+        List<Location> points = new ArrayList<>();
+        List<Location> spawns = path.getSpawns();
+        if (!spawns.isEmpty()) {
+            points.add(spawns.getFirst().clone().add(0, 0.2, 0));
+        }
+        double yOff = plugin.getConfig().getDouble("trail.y-offset", 0.35);
+        for (Location trail : path.getTrail()) {
+            points.add(trail.clone().add(0, yOff, 0));
+        }
+        Location finish = path.finishCenter();
+        if (finish != null) {
+            points.add(finish.clone().add(0, 0.3, 0));
+        }
+        return points;
+    }
+
+    private static int nearestTrailIndex(Location probe, List<Location> points) {
+        int best = 0;
+        double bestDist = Double.MAX_VALUE;
+        for (int i = 0; i < points.size(); i++) {
+            Location p = points.get(i);
+            if (p.getWorld() == null || probe.getWorld() == null || !p.getWorld().equals(probe.getWorld())) {
+                continue;
+            }
+            double d = p.distanceSquared(probe);
+            if (d < bestDist) {
+                bestDist = d;
+                best = i;
+            }
+        }
+        return best;
+    }
+
     private void checkFinishes(RaceSession session) {
+        if (session.getPhase() != RaceSession.Phase.RACING) {
+            return;
+        }
         RacePath path = session.getActivePath();
         if (path == null) {
             return;
         }
-        double radius = plugin.getConfig().getDouble("finish-check-radius-fallback", 2.5);
+        double radius = plugin.getConfig().getDouble("finish-check-radius-fallback", 3.5);
+        double pad = plugin.getConfig().getDouble("finish-pad", 1.5);
         boolean requirePig = plugin.getConfig().getBoolean("finish-requires-pig", false);
 
         for (RaceSession.Racer racer : session.getRacers().values()) {
@@ -909,9 +956,9 @@ public final class GameManager {
             if (player == null) {
                 continue;
             }
-            boolean playerIn = path.contains(player.getLocation(), radius);
+            boolean playerIn = path.contains(player.getLocation(), radius, pad);
             Pig pig = racer.getPig();
-            boolean pigIn = pig != null && pig.isValid() && path.contains(pig.getLocation(), radius);
+            boolean pigIn = pig != null && pig.isValid() && path.contains(pig.getLocation(), radius, pad);
             boolean done = requirePig ? (playerIn && pigIn) : (playerIn || pigIn);
             if (done) {
                 markFinished(session, racer, player);
@@ -920,6 +967,9 @@ public final class GameManager {
     }
 
     private void markFinished(RaceSession session, RaceSession.Racer racer, Player player) {
+        if (racer.isFinished() || session.getPhase() != RaceSession.Phase.RACING) {
+            return;
+        }
         racer.setFinished(true);
         double seconds = (System.currentTimeMillis() - session.getRaceStartMillis()) / 1000.0;
         int place = session.getPlacements().size() + 1;
@@ -935,6 +985,22 @@ public final class GameManager {
             playSound(session, Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
         }
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1.5f);
+
+        boolean endOnFirst = plugin.getConfig().getBoolean("end-on-first-finish", true);
+        int grace = plugin.getConfig().getInt("end-grace-seconds", 0);
+        if (endOnFirst && place == 1) {
+            if (grace <= 0) {
+                endRace(session, "complete");
+            } else {
+                broadcastRaw(session, "&eRace ending in &f" + grace + "&e seconds...");
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    if (session.getPhase() == RaceSession.Phase.RACING) {
+                        endRace(session, "complete");
+                    }
+                }, grace * 20L);
+            }
+            return;
+        }
 
         if (session.getPlacements().size() >= session.size()) {
             endRace(session, "complete");

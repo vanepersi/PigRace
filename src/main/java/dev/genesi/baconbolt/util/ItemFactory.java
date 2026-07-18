@@ -29,10 +29,14 @@ public final class ItemFactory {
     }
 
     public ItemStack createJoinItem() {
+        return createJoinItem(null);
+    }
+
+    public ItemStack createJoinItem(String arenaOverride) {
         ConfigurationSection section = plugin.getConfig().getConfigurationSection("join-item");
         Material material = Material.CARROT;
         String display = "&6&lBacon Bolt Carrot";
-        List<String> lore = List.of("&7Eat to join the lounge pig race!");
+        List<String> lore = List.of("&7Eat to join Bacon Bolt!");
         int cmd = 0;
         String itemModel = "";
         String arena = "lounge";
@@ -44,6 +48,9 @@ public final class ItemFactory {
             cmd = section.getInt("custom-model-data", 0);
             itemModel = section.getString("item-model", "");
             arena = section.getString("arena", "lounge");
+        }
+        if (arenaOverride != null && !arenaOverride.isBlank()) {
+            arena = arenaOverride.toLowerCase();
         }
         return buildMarked(material, display, lore, cmd, itemModel, JOIN_ITEM_KEY, arena);
     }

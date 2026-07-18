@@ -3,6 +3,7 @@ package dev.genesi.baconbolt.command;
 import dev.genesi.baconbolt.BaconBoltPlugin;
 import dev.genesi.baconbolt.model.Arena;
 import dev.genesi.baconbolt.model.RacePath;
+import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -221,6 +222,27 @@ public final class BaconBoltAdminCommand implements CommandExecutor, TabComplete
                 plugin.saveConfig();
                 plugin.getMessageService().send(sender, "join-item-bound", Map.of("arena", args[1].toLowerCase(Locale.ROOT)));
             }
+            case "setjoinblock" -> {
+                Player player = requirePlayer(sender);
+                if (player == null) {
+                    return true;
+                }
+                Arena arena = requireArena(sender, args, 1);
+                if (arena == null) {
+                    return true;
+                }
+                Block target = player.getTargetBlockExact(6);
+                if (target == null || target.getType().isAir()) {
+                    plugin.getMessageService().sendRaw(player, "&cLook at a solid block within 6 blocks.");
+                    return true;
+                }
+                arena.setJoinBlock(target.getLocation());
+                plugin.getArenaManager().save();
+                plugin.getMessageService().send(player, "join-block-set", Map.of(
+                        "arena", arena.getName(),
+                        "block", target.getType().name()
+                ));
+            }
             case "forcestop" -> {
                 Arena arena = requireArena(sender, args, 1);
                 if (arena == null) {
@@ -278,6 +300,7 @@ public final class BaconBoltAdminCommand implements CommandExecutor, TabComplete
         plugin.getMessageService().sendRaw(sender, "&e/baconboltadmin addpowerup <arena> <path> &7- Mario Kart boxes");
         plugin.getMessageService().sendRaw(sender, "&e/baconboltadmin setfinish <arena> <path> <a|b>");
         plugin.getMessageService().sendRaw(sender, "&e/baconboltadmin givecarrot | setjoinarena <arena>");
+        plugin.getMessageService().sendRaw(sender, "&e/baconboltadmin setjoinblock <arena> &7- look at block that gives carrots");
         plugin.getMessageService().sendRaw(sender, "&e/baconboltadmin forcestop <arena> | list | stats | reload");
     }
 
@@ -311,13 +334,13 @@ public final class BaconBoltAdminCommand implements CommandExecutor, TabComplete
             return filter(List.of(
                     "create", "delete", "setlobby", "setexit", "createpath", "deletepath",
                     "addspawn", "addtrail", "addpowerup", "setfinish", "givejoinitem", "givecarrot",
-                    "setjoinarena", "forcestop", "reload", "list", "stats"
+                    "setjoinarena", "setjoinblock", "forcestop", "reload", "list", "stats"
             ), args[0]);
         }
         if (args.length == 2) {
             String sub = args[0].toLowerCase(Locale.ROOT);
             if (List.of("delete", "setlobby", "setexit", "createpath", "deletepath", "addspawn",
-                    "addtrail", "addpowerup", "setfinish", "setjoinarena", "forcestop").contains(sub)) {
+                    "addtrail", "addpowerup", "setfinish", "setjoinarena", "setjoinblock", "forcestop").contains(sub)) {
                 return filter(plugin.getArenaManager().all().stream().map(Arena::getName).collect(Collectors.toList()), args[1]);
             }
         }
